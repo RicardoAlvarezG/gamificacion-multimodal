@@ -14,6 +14,7 @@ export default function Sidebar({ role }: SidebarProps) {
   ];
 
   const docenteItems = [
+    { label: "Dashboard", icon: "🏠" },
     { label: "Aulas", icon: "🏫" },
     { label: "Estudiantes", icon: "🧒" },
     { label: "Reportes", icon: "📊" },
