@@ -1,58 +1,53 @@
 import DashboardLayout from "@/components/layout/DashboardLayout";
 
-export default function DashboardPage() {
+export default function DocenteDashboardPage() {
   const cards = [
-    {
-      icon: "⏳",
-      title: "Solicitudes pendientes",
-      text: "Docentes esperando aprobación institucional.",
-      color: "from-pink-400 to-rose-300",
-    },
-    {
-      icon: "👩‍🏫",
-      title: "Docentes registrados",
-      text: "Gestiona docentes activos dentro del sistema.",
-      color: "from-purple-400 to-violet-300",
-    },
     {
       icon: "🏫",
       title: "Aulas",
-      text: "Administra aulas y secciones disponibles.",
+      text: "Gestiona tus aulas asignadas o creadas.",
       color: "from-sky-400 to-cyan-300",
     },
     {
       icon: "🧒",
       title: "Estudiantes",
-      text: "Gestiona estudiantes vinculados a las aulas.",
+      text: "Administra los estudiantes de tus aulas.",
       color: "from-yellow-400 to-orange-300",
     },
     {
       icon: "📊",
-      title: "Reportes generales",
-      text: "Visualiza estadísticas y desempeño institucional.",
+      title: "Reportes",
+      text: "Revisa el progreso y participación de tus estudiantes.",
       color: "from-green-400 to-emerald-300",
     },
     {
       icon: "🔒",
       title: "Cambiar contraseña",
       text: "Actualiza tu contraseña de acceso de forma segura.",
-      color: "from-indigo-400 to-blue-300",
+      color: "from-red-400 to-pink-300",
+    },
+    {
+      icon: "🎮",
+      title: "Juegos",
+      text: "Accede a juegos y dinámicas educativas para el aula.",
+      color: "from-purple-400 to-violet-300",
     },
   ];
 
   return (
     <DashboardLayout
-      role="administrador"
-      name="Ricardo Alvarez"
-      userId="ADMIN001"
+      role="docente"
+      name="Carlos Mendoza"
+      userId="DOC001"
     >
       <section className="mb-6 rounded-[2rem] bg-white/80 p-6 shadow-md">
         <h2 className="text-2xl font-extrabold text-slate-800">
-          Bienvenido al panel administrativo 🌈
+          Bienvenido al panel docente 🎨
         </h2>
+
         <p className="mt-2 text-slate-500 font-medium">
-          Desde aquí podrás gestionar docentes, aulas, estudiantes y reportes
-          generales de la institución.
+          Desde aquí podrás gestionar tus aulas, estudiantes, juegos y reportes
+          de participación.
         </p>
       </section>
 

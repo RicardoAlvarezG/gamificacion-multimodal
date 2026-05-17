@@ -1,6 +1,7 @@
 import DashboardLayout from "@/components/layout/DashboardLayout";
 
-export default function DashboardPage() {
+export default function AdministradorDashboardPage() {
+
   const cards = [
     {
       icon: "⏳",
@@ -84,4 +85,5 @@ export default function DashboardPage() {
       </section>
     </DashboardLayout>
   );
+
 }
