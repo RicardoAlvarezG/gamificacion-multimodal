@@ -1,7 +1,11 @@
+"use client";
+import { useState } from "react";
 import Link from "next/link";
 import AulaCard from "@/components/cards/AulaCard";
+import CreateAulaModal from "@/components/forms/CreateAulaModal";
 
 export default function AulasPage() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
   return (
     <div className="mx-10 mt-8 min-h-[82vh] rounded-[3rem] bg-white/90 p-12 shadow-2xl border border-white/70">
       <div className="mb-12 flex items-center justify-between">
@@ -43,7 +47,10 @@ export default function AulasPage() {
           emoji="🧸"
         />
 
-        <div className="flex min-h-[360px] cursor-pointer flex-col items-center justify-center rounded-[2rem] border-2 border-dashed border-purple-300 bg-white p-8 shadow-xl transition hover:-translate-y-2 hover:shadow-2xl">
+        <div 
+        onClick={() => setIsModalOpen(true)}
+        className="flex min-h-[360px] cursor-pointer flex-col items-center justify-center rounded-[2rem] border-2 border-dashed border-purple-300 bg-white p-8 shadow-xl transition hover:-translate-y-2 hover:shadow-2xl"
+        >
           <div className="flex h-28 w-28 items-center justify-center rounded-full bg-purple-100 text-7xl font-extrabold text-purple-600">
             +
           </div>
@@ -56,6 +63,10 @@ export default function AulasPage() {
             Agrega una nueva aula
           </p>
         </div>
+         <CreateAulaModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
       </div>
     </div>
   );
