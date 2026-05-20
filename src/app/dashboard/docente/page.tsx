@@ -1,78 +1,138 @@
+import Link from "next/link";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 
 export default function DocenteDashboardPage() {
+  const docente = {
+    name: "Carlos Mendoza",
+    userId: "DOC001",
+    tipo: "institucional", // cambiar a "independiente" para probar
+    institucion: "I.E. Mundo Feliz",
+    aulasAsignadas: 2,
+  };
+
   const cards = [
     {
       icon: "🏫",
-      title: "Aulas",
-      text: "Gestiona tus aulas asignadas o creadas.",
-      color: "from-sky-400 to-cyan-300",
+      title: "Mis aulas",
+      text:
+        docente.tipo === "institucional"
+          ? "Visualiza las aulas asignadas por el administrador."
+          : "Crea y administra tus propias aulas.",
+      color: "from-sky-300 to-cyan-200",
+      href: "/dashboard/docente/aulas",
     },
     {
       icon: "🧒",
       title: "Estudiantes",
-      text: "Administra los estudiantes de tus aulas.",
-      color: "from-yellow-400 to-orange-300",
+      text: "Gestiona los estudiantes de tus aulas y revisa sus avatares.",
+      color: "from-yellow-300 to-orange-200",
+      href: "/dashboard/docente/estudiantes",
+    },
+    {
+      icon: "🎮",
+      title: "Juegos",
+      text: "Crea sesiones de juego y asigna dinámicas educativas.",
+      color: "from-purple-300 to-violet-200",
+      href: "/dashboard/docente/juegos",
     },
     {
       icon: "📊",
       title: "Reportes",
       text: "Revisa el progreso y participación de tus estudiantes.",
-      color: "from-green-400 to-emerald-300",
+      color: "from-green-300 to-emerald-200",
+      href: "/dashboard/docente/reportes",
     },
     {
       icon: "🔒",
       title: "Cambiar contraseña",
       text: "Actualiza tu contraseña de acceso de forma segura.",
-      color: "from-red-400 to-pink-300",
-    },
-    {
-      icon: "🎮",
-      title: "Juegos",
-      text: "Accede a juegos y dinámicas educativas para el aula.",
-      color: "from-purple-400 to-violet-300",
+      color: "from-red-300 to-pink-200",
+      href: "/dashboard/docente/cambiar-password",
     },
   ];
 
   return (
     <DashboardLayout
       role="docente"
-      name="Carlos Mendoza"
-      userId="DOC001"
+      name={docente.name}
+      userId={docente.userId}
     >
-      <section className="mb-6 rounded-[2rem] bg-white/80 p-6 shadow-md">
-        <h2 className="text-2xl font-extrabold text-slate-800">
-          Bienvenido al panel docente 🎨
-        </h2>
+      <section className="mb-6 rounded-[2rem] bg-gradient-to-br from-pink-100 via-yellow-50 to-sky-100 p-7 shadow-md">
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <span className="rounded-full bg-purple-100 px-4 py-2 text-sm font-bold text-purple-700">
+              Panel docente
+            </span>
 
-        <p className="mt-2 text-slate-500 font-medium">
-          Desde aquí podrás gestionar tus aulas, estudiantes, juegos y reportes
-          de participación.
-        </p>
+            <h2 className="mt-4 text-3xl font-extrabold text-slate-800">
+              Bienvenido, {docente.name} 🎨
+            </h2>
+
+            <p className="mt-2 max-w-2xl font-medium text-slate-600">
+              Desde aquí podrás gestionar tus aulas, estudiantes, juegos y
+              actividades de participación con un entorno infantil y amigable.
+            </p>
+          </div>
+
+          <div className="rounded-[2rem] bg-white/80 p-5 shadow-sm">
+            <p className="text-sm font-bold text-slate-500">Tipo de docente</p>
+
+            <h3 className="mt-1 text-xl font-extrabold text-purple-700">
+              {docente.tipo === "institucional"
+                ? "Docente institucional"
+                : "Docente independiente"}
+            </h3>
+
+            <p className="mt-2 text-sm font-semibold text-slate-600">
+              🏫 {docente.institucion}
+            </p>
+
+            <p className="mt-1 text-sm font-semibold text-slate-600">
+              📚 Aulas: {docente.aulasAsignadas}
+            </p>
+          </div>
+        </div>
       </section>
 
       <section className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
         {cards.map((card) => (
           <div
             key={card.title}
-            className="group rounded-[2rem] bg-white p-4 shadow-md hover:-translate-y-1 hover:shadow-xl transition"
+            className="group rounded-[2rem] bg-white/70 p-4 shadow-md transition hover:-translate-y-1 hover:shadow-xl"
           >
             <div
-              className={`rounded-[1.5rem] bg-gradient-to-br ${card.color} p-5 text-white`}
+              className={`rounded-[1.5rem] bg-gradient-to-br ${card.color} p-5 text-slate-700`}
             >
-              <div className="text-5xl">{card.icon}</div>
+              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-white/80 text-5xl shadow-sm">
+                {card.icon}
+              </div>
 
-              <h2 className="mt-5 text-xl font-extrabold">
+              <h2 className="mt-5 text-xl font-extrabold text-slate-800">
                 {card.title}
               </h2>
 
-              <p className="mt-2 text-sm font-medium text-white/90">
+              <p className="mt-2 min-h-[48px] text-sm font-medium text-slate-600">
                 {card.text}
               </p>
 
-              <button className="mt-5 rounded-2xl bg-white/90 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-white transition">
-                Ingresar
-              </button>
+              <div className="mt-5 flex gap-3">
+                <Link
+                  href={card.href}
+                  className="inline-block rounded-2xl bg-white/90 px-4 py-2 text-sm font-bold text-slate-700 transition hover:bg-white"
+                >
+                  Ingresar
+                </Link>
+
+                {card.title === "Mis aulas" &&
+                  docente.tipo === "independiente" && (
+                    <Link
+                      href="/dashboard/docente/aulas/crear"
+                      className="inline-block rounded-2xl bg-green-400 px-4 py-2 text-sm font-bold text-green-950 transition hover:scale-105"
+                    >
+                      + Crear
+                    </Link>
+                  )}
+              </div>
             </div>
           </div>
         ))}
