@@ -62,7 +62,7 @@ export default function Sidebar({ role }: SidebarProps) {
     {
       label: "Juegos",
       icon: "🎮",
-      href: "/dashboard/docente/gamificacion",
+      href: "/dashboard/docente/juegos",
     },
     {
       label: "Reportes",
