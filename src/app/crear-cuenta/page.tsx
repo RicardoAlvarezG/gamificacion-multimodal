@@ -14,6 +14,66 @@ export default function CrearCuentaPage() {
   const [mostrarPassword, setMostrarPassword] = useState(false);
   const [mostrarConfirmar, setMostrarConfirmar] = useState(false);
   const [rolSeleccionado, setRolSeleccionado] = useState("");
+  const [formData, setFormData] = useState({
+        nombre: "",
+        correo: "",
+        institucion: "",
+        usuario: "",
+        password: "",
+        confirmarPassword: "",
+        codigoInstitucional: "",
+      });
+
+      const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData({
+          ...formData,
+          [e.target.name]: e.target.value,
+        });
+      };
+        const handleSubmit = async (e: React.FormEvent) => {
+          e.preventDefault();
+
+          if (formData.password !== formData.confirmarPassword) {
+            alert("Las contraseñas no coinciden");
+            return;
+          }
+
+          try {
+            const res = await fetch("/api/registro", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                  ...formData,
+                  rol: rolSeleccionado === "administrador" ? "ADMIN" : "DOCENTE",
+            }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+              alert(data.error || "Error al registrar");
+              return;
+            }
+
+            alert("Cuenta creada correctamente");
+
+            setFormData({
+              nombre: "",
+              correo: "",
+              institucion: "",
+              usuario: "",
+              password: "",
+              confirmarPassword: "",
+              codigoInstitucional: "",
+            });
+
+          } catch (error) {
+            alert("Error de conexión con el servidor");
+          }
+        };
+
 
   const inputClass =
     "w-full mt-1 px-5 py-3 bg-white border-2 border-blue-200 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-blue-400 transition";
@@ -32,17 +92,20 @@ export default function CrearCuentaPage() {
           </p>
         </div>
 
-        <form className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
 
           <div>
             <label className="block text-sm font-semibold text-blue-700">
               Nombres y apellidos
             </label>
             <input
-              type="text"
-              placeholder="Tu nombre completo"
-              className={inputClass}
-            />
+                  type="text"
+                  name="nombre"
+                  placeholder="Nombre completo"
+                  value={formData.nombre}
+                  onChange={handleChange}
+                  className={inputClass}
+                />
           </div>
 
           <div>
@@ -50,10 +113,13 @@ export default function CrearCuentaPage() {
               Correo electrónico
             </label>
             <input
-              type="email"
-              placeholder="correo@ejemplo.com"
-              className={inputClass}
-            />
+                type="email"
+                name="correo"
+                placeholder="Correo electrónico"
+                value={formData.correo}
+                onChange={handleChange}
+                className={inputClass}
+              />
           </div>
 
         <div>
@@ -79,10 +145,13 @@ export default function CrearCuentaPage() {
               ID de usuario
             </label>
             <input
-              type="text"
-              placeholder="Ejemplo: DOC001"
-              className={inputClass}
-            />
+                type="text"
+                name="usuario"
+                placeholder="ID de usuario"
+                value={formData.usuario}
+                onChange={handleChange}
+                className={inputClass}
+              />
           </div>
 
           <div>
@@ -159,11 +228,14 @@ export default function CrearCuentaPage() {
               Contraseña
             </label>
             <div className="relative mt-1">
-              <input
-                type={mostrarPassword ? "text" : "password"}
-                placeholder="Tu contraseña"
-                className={inputClass}
-              />
+             <input
+                  type={mostrarPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Tu contraseña"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className={inputClass}
+                />
               <button
                 type="button"
                 onClick={() => setMostrarPassword(!mostrarPassword)}
@@ -180,10 +252,13 @@ export default function CrearCuentaPage() {
             </label>
             <div className="relative mt-1">
               <input
-                type={mostrarConfirmar ? "text" : "password"}
-                placeholder="Repite tu contraseña"
-                className={inputClass}
-              />
+                  type={mostrarConfirmar ? "text" : "password"}
+                  name="confirmarPassword"
+                  placeholder="Confirmar contraseña"
+                  value={formData.confirmarPassword}
+                  onChange={handleChange}
+                  className={inputClass}
+                />
               <button
                 type="button"
                 onClick={() => setMostrarConfirmar(!mostrarConfirmar)}
