@@ -4,10 +4,85 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
+}
+model Usuario {
+  id                 Int      @id @default(autoincrement())
+  nombre             String
+  apellido           String?
+  usuario            String   @unique
+  password           String
+  rol                Rol
+  codigoInstitucional String?  @unique
+  institucionId      Int?
+  estado             String   @default("activo")
+  createdAt          DateTime @default(now())
+
+  institucion        Institucion? @relation(fields: [institucionId], references: [id])
+  aulasDocente       Aula[]       @relation("DocenteAulas")
+}
+
+model Institucion {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  codigo    String   @unique
+  createdAt DateTime @default(now())
+
+  usuarios  Usuario[]
+  aulas     Aula[]
+}
+
+model Aula {
+  id            Int      @id @default(autoincrement())
+  nombre        String
+  turno         String
+  institucionId Int?
+  docenteId     Int?
+  createdAt     DateTime @default(now())
+
+  institucion   Institucion? @relation(fields: [institucionId], references: [id])
+  docente       Usuario?     @relation("DocenteAulas", fields: [docenteId], references: [id])
+  estudiantes   Estudiante[]
+}
+
+model Estudiante {
+  id        Int      @id @default(autoincrement())
+  nombres   String
+  apellidos String
+  aulaId    Int
+  createdAt DateTime @default(now())
+
+  aula      Aula @relation(fields: [aulaId], references: [id])
+  perfil    PerfilGamificado?
+  puntajes  Puntaje[]
+}
+
+model PerfilGamificado {
+  id           Int      @id @default(autoincrement())
+  estudianteId Int      @unique
+  avatar       String?
+  nivel        Int      @default(1)
+  puntosTotal  Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  estudiante   Estudiante @relation(fields: [estudianteId], references: [id])
+}
+
+model Puntaje {
+  id           Int      @id @default(autoincrement())
+  estudianteId Int
+  puntos       Int
+  motivo       String
+  createdAt    DateTime @default(now())
+
+  estudiante   Estudiante @relation(fields: [estudianteId], references: [id])
+}
+
+enum Rol {
+  ADMIN
+  DOCENTE
 }
