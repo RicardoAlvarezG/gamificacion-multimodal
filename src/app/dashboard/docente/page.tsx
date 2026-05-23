@@ -1,14 +1,33 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 
 export default function DocenteDashboardPage() {
-  const docente = {
-    name: "Carlos Mendoza",
-    userId: "DOC001",
-    tipo: "institucional", // cambiar a "independiente" para probar
-    institucion: "I.E. Mundo Feliz",
-    aulasAsignadas: 2,
-  };
+const [docente, setDocente] = useState({
+  name: "",
+  userId: "",
+  tipo: "independiente",
+  institucion: "",
+  aulasAsignadas: 0,
+});
+
+useEffect(() => {
+  const usuarioGuardado = localStorage.getItem("usuario");
+
+  if (usuarioGuardado) {
+    const user = JSON.parse(usuarioGuardado);
+
+    setDocente({
+      name: user.nombre || "",
+      userId: user.usuario || "",
+      tipo: user.codigoInstitucional ? "institucional" : "independiente",
+      institucion: user.codigoInstitucional || "",
+      aulasAsignadas: 0,
+    });
+  }
+}, []);
 
   const cards = [
     {

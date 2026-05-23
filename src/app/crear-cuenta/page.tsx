@@ -45,8 +45,9 @@ export default function CrearCuentaPage() {
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                  ...formData,
-                  rol: rolSeleccionado === "administrador" ? "ADMIN" : "DOCENTE",
+              ...formData,
+              institucion: formData.institucion.trim(),
+              rol: rolSeleccionado === "administrador" ? "ADMIN" : "DOCENTE",
             }),
             });
 
@@ -130,14 +131,17 @@ export default function CrearCuentaPage() {
             </label>
 
             <input
-                type="text"
-                placeholder={
+              type="text"
+              name="institucion"
+              placeholder={
                 rolSeleccionado === "administrador"
-                ? "Nombre de la institución"
-                : "Si aplica, nombre de institución"
-                }
-                className={inputClass}
-             />
+                  ? "Nombre de la institución"
+                  : "Si aplica, nombre de institución"
+              }
+              value={formData.institucion}
+              onChange={handleChange}
+              className={inputClass}
+            />
         </div>
 
           <div>
@@ -202,7 +206,10 @@ export default function CrearCuentaPage() {
 
                 <input
                   type="text"
+                  name="codigoInstitucional"
                   placeholder="Ingresa el código del administrador"
+                  value={formData.codigoInstitucional}
+                  onChange={handleChange}
                   className="w-full pl-12 pr-4 py-3 bg-white border-2 border-blue-200 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400"
                 />
               </div>

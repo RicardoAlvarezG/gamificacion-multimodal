@@ -12,7 +12,11 @@ interface HeaderProps {
 export default function Header({ role, name, userId, institutionName }: HeaderProps) {
   const [time, setTime] = useState("");
 
-  const institutionalCode = "INST-X4K92A";
+  const [institutionalCode, setInstitutionalCode] = useState("");
+  const handleLogout = () => {
+  localStorage.removeItem("usuario");
+  window.location.href = "/login";
+};
 
   useEffect(() => {
     const updateClock = () => {
@@ -25,6 +29,12 @@ export default function Header({ role, name, userId, institutionName }: HeaderPr
         })
       );
     };
+    const usuarioGuardado = localStorage.getItem("usuario");
+
+    if (usuarioGuardado) {
+      const user = JSON.parse(usuarioGuardado);
+      setInstitutionalCode(user.codigoInstitucional || "");
+    }
 
     updateClock();
     const interval = setInterval(updateClock, 1000);
@@ -73,6 +83,15 @@ export default function Header({ role, name, userId, institutionName }: HeaderPr
           <div className="rounded-2xl bg-yellow-100 px-4 py-3 text-yellow-700 font-extrabold shadow-sm">
             🛡️ {role === "administrador" ? "Administrador" : "Docente"}
           </div>
+          <button
+            onClick={() => {
+              localStorage.removeItem("usuarioLogueado");
+              window.location.href = "/login";
+            }}
+            className="rounded-2xl bg-red-500 px-4 py-3 text-white font-bold shadow-sm hover:bg-red-600 transition"
+          >
+            Cerrar sesión
+          </button>
 
         {role === "administrador" && (
           <div className="rounded-2xl bg-purple-100 px-4 py-3 shadow-sm">

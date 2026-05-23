@@ -1,6 +1,26 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 
 export default function AdministradorDashboardPage() {
+  const [admin, setAdmin] = useState({
+    name: "",
+    userId: "",
+  });
+
+  useEffect(() => {
+    const usuarioGuardado = localStorage.getItem("usuario");
+
+    if (usuarioGuardado) {
+      const user = JSON.parse(usuarioGuardado);
+
+      setAdmin({
+        name: user.nombre || "",
+        userId: user.usuario || "",
+      });
+    }
+  }, []);
 
   const cards = [
     {
@@ -44,8 +64,8 @@ export default function AdministradorDashboardPage() {
   return (
     <DashboardLayout
       role="administrador"
-      name="Ricardo Alvarez"
-      userId="ADMIN001"
+      name={admin.name}
+      userId={admin.userId}
     >
       <section className="mb-6 rounded-[2rem] bg-white/80 p-6 shadow-md">
         <h2 className="text-2xl font-extrabold text-slate-800">
@@ -68,9 +88,7 @@ export default function AdministradorDashboardPage() {
             >
               <div className="text-5xl">{card.icon}</div>
 
-              <h2 className="mt-5 text-xl font-extrabold">
-                {card.title}
-              </h2>
+              <h2 className="mt-5 text-xl font-extrabold">{card.title}</h2>
 
               <p className="mt-2 text-sm font-medium text-white/90">
                 {card.text}
@@ -85,5 +103,4 @@ export default function AdministradorDashboardPage() {
       </section>
     </DashboardLayout>
   );
-
 }
