@@ -30,7 +30,21 @@ export default function AulasPage() {
         return;
       }
 
-      setAulas(data);
+          const usuarioGuardado = localStorage.getItem("usuario");
+
+      if (!usuarioGuardado) {
+        alert("No hay usuario logueado");
+        return;
+      }
+
+      const admin = JSON.parse(usuarioGuardado);
+
+      const aulasInstitucion = data.filter(
+        (aula: any) => aula.institucionId === admin.institucionId
+      );
+
+      setAulas(aulasInstitucion);
+
     } catch (error) {
       console.error("Error al cargar aulas:", error);
       alert("Error al conectar con el servidor");

@@ -14,19 +14,40 @@ const [docente, setDocente] = useState({
 });
 
 useEffect(() => {
-  const usuarioGuardado = localStorage.getItem("usuario");
+  const cargarDocente = async () => {
+    const usuarioGuardado = localStorage.getItem("usuario");
 
-  if (usuarioGuardado) {
+    if (!usuarioGuardado) return;
+
     const user = JSON.parse(usuarioGuardado);
+
+    const tipoDocente = user.institucionId
+      ? "institucional"
+      : "independiente";
+
+    const res = await fetch("/api/aulas");
+    const aulas = await res.json();
+
+    const aulasFiltradas =
+      tipoDocente === "institucional"
+        ? aulas.filter((aula: any) => aula.docenteId === user.id)
+        : aulas.filter((aula: any) => aula.creadoPorId === user.id);
+
+    const nombreInstitucion =
+      tipoDocente === "institucional"
+        ? aulasFiltradas[0]?.institucion?.nombre || "Institución asignada"
+        : "Docente independiente";
 
     setDocente({
       name: user.nombre || "",
       userId: user.usuario || "",
-      tipo: user.codigoInstitucional ? "institucional" : "independiente",
-      institucion: user.codigoInstitucional || "",
-      aulasAsignadas: 0,
+      tipo: tipoDocente,
+      institucion: nombreInstitucion,
+      aulasAsignadas: aulasFiltradas.length,
     });
-  }
+  };
+
+  cargarDocente();
 }, []);
 
   const cards = [
@@ -66,7 +87,7 @@ useEffect(() => {
       title: "Cambiar contraseña",
       text: "Actualiza tu contraseña de acceso de forma segura.",
       color: "from-red-300 to-pink-200",
-      href: "/dashboard/docente/cambiar-password",
+      href: "/dashboard/docente/password",
     },
   ];
 

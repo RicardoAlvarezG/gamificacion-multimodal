@@ -4,7 +4,11 @@ import { estudiantesMock } from "@/modules/estudiantes/data";
 
 export default function EstudiantesPage() {
   return (
-    <DashboardLayout>
+    <DashboardLayout
+      role="administrador"
+      name="Administrador"
+      userId="admin001"
+    >
       <section>
         <div className="mb-6 flex items-center justify-between">
           <div>

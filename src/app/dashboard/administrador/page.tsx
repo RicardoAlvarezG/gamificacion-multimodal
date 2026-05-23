@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 
@@ -28,36 +29,42 @@ export default function AdministradorDashboardPage() {
       title: "Solicitudes pendientes",
       text: "Docentes esperando aprobación institucional.",
       color: "from-pink-400 to-rose-300",
+      href: "/dashboard/administrador/docentes"
     },
     {
       icon: "👩‍🏫",
       title: "Docentes registrados",
       text: "Gestiona docentes activos dentro del sistema.",
       color: "from-purple-400 to-violet-300",
+      href: "/dashboard/administrador/docentes"
     },
     {
       icon: "🏫",
       title: "Aulas",
       text: "Administra aulas y secciones disponibles.",
       color: "from-sky-400 to-cyan-300",
+      href: "/dashboard/administrador/aulas"
     },
     {
       icon: "🧒",
       title: "Estudiantes",
       text: "Gestiona estudiantes vinculados a las aulas.",
       color: "from-yellow-400 to-orange-300",
+      href: "/dashboard/administrador/estudiantes"
     },
     {
       icon: "📊",
       title: "Reportes generales",
       text: "Visualiza estadísticas y desempeño institucional.",
       color: "from-green-400 to-emerald-300",
+      href: "/dashboard/administrador/reportes"
     },
     {
       icon: "🔒",
       title: "Cambiar contraseña",
       text: "Actualiza tu contraseña de acceso de forma segura.",
       color: "from-indigo-400 to-blue-300",
+      href: "/dashboard/administrador/cambiar-password"
     },
   ];
 
@@ -94,9 +101,12 @@ export default function AdministradorDashboardPage() {
                 {card.text}
               </p>
 
-              <button className="mt-5 rounded-2xl bg-white/90 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-white transition">
+              <Link
+                href={card.href}
+                className="mt-5 inline-block rounded-2xl bg-white/90 px-4 py-2 text-sm font-bold text-slate-700 hover:bg-white transition"
+              >
                 Ingresar
-              </button>
+              </Link>
             </div>
           </div>
         ))}

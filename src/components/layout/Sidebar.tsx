@@ -39,7 +39,7 @@ export default function Sidebar({ role }: SidebarProps) {
     {
       label: "Cambiar contraseña",
       icon: "🔒",
-      href: "#",
+      href: "/dashboard/administrador/cambiar-password"
     },
   ];
 
@@ -72,7 +72,7 @@ export default function Sidebar({ role }: SidebarProps) {
     {
       label: "Cambiar contraseña",
       icon: "🔒",
-      href: "#",
+      href: "/dashboard/docente/password"
     },
   ];
 
