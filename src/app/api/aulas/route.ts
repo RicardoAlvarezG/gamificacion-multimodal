@@ -29,7 +29,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    const { nombre, turno, institucionId, docenteId } = body;
+    const { nombre, turno, institucionId, docenteId, creadoPorId } = body;
 
     if (!nombre || !turno) {
       return NextResponse.json(
@@ -38,14 +38,33 @@ export async function POST(req: Request) {
       );
     }
 
-    const aula = await prisma.aula.create({
-      data: {
-        nombre,
-        turno,
-        institucionId: institucionId || null,
-        docenteId: docenteId ? Number(docenteId) : null,
-      },
-    });
+   const aula = await prisma.aula.create({
+  data: {
+    nombre,
+    turno,
+    ...(institucionId
+      ? {
+          institucion: {
+            connect: { id: Number(institucionId) },
+          },
+        }
+      : {}),
+    ...(docenteId
+      ? {
+          docente: {
+            connect: { id: Number(docenteId) },
+          },
+        }
+      : {}),
+    ...(creadoPorId
+      ? {
+          creadoPor: {
+            connect: { id: Number(creadoPorId) },
+          },
+        }
+      : {}),
+  },
+});
 
     return NextResponse.json(aula);
   } catch (error) {

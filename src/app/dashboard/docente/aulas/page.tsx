@@ -1,51 +1,102 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
-const docente = {
-  tipo: "institucional", // cambiar a "independiente" para probar
+type Estudiante = {
+  id: number;
+  aulaId: number;
+  nombres: string;
+  apellidos: string;
+  perfil?: {
+    avatar?: string | null;
+    nivel: number;
+    puntosTotal: number;
+  } | null;
 };
 
-const aulas = [
-  {
-    id: 1,
-    nombre: "Aula Ositos",
-    turno: "Mañana",
-    estudiantes: 3,
-    icono: "🧸",
-    color: "bg-green-100",
-  },
-  {
-    id: 2,
-    nombre: "Aula Estrellitas",
-    turno: "Tarde",
-    estudiantes: 2,
-    icono: "⭐",
-    color: "bg-blue-100",
-  },
-  {
-    id: 3,
-    nombre: "Aula Conejitos",
-    turno: "Mañana",
-    estudiantes: 2,
-    icono: "🐰",
-    color: "bg-pink-100",
-  },
-];
-
-const alumnos = [
-  { id: 1, aulaId: 1, nombre: "Mateo Ramírez", edad: 5, avatar: "🐻" },
-  { id: 2, aulaId: 1, nombre: "Lucía Torres", edad: 4, avatar: "🦊" },
-  { id: 3, aulaId: 1, nombre: "Valentina Pérez", edad: 5, avatar: "🐰" },
-  { id: 4, aulaId: 2, nombre: "Thiago Castillo", edad: 5, avatar: "🐯" },
-  { id: 5, aulaId: 2, nombre: "Camila Rojas", edad: 4, avatar: "🐼" },
-  { id: 6, aulaId: 3, nombre: "Santiago Vega", edad: 5, avatar: "🦁" },
-  { id: 7, aulaId: 3, nombre: "Emma Flores", edad: 4, avatar: "🐨" },
-];
+type Aula = {
+  id: number;
+  nombre: string;
+  turno: string;
+  docenteId?: number | null;
+  creadoPorId?: number | null;
+  estudiantes?: Estudiante[];
+};
 
 export default function DocenteAulasPage() {
+  const [aulas, setAulas] = useState<Aula[]>([]);
+  const [alumnos, setAlumnos] = useState<Estudiante[]>([]);
   const [aulaSeleccionada, setAulaSeleccionada] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  const [docente, setDocente] = useState({
+    id: 0,
+    tipo: "independiente",
+  });
+
+  const cargarAulas = async () => {
+    try {
+      const usuarioGuardado = localStorage.getItem("usuario");
+
+      if (!usuarioGuardado) {
+        alert("No hay usuario logueado");
+        return;
+      }
+
+      const user = JSON.parse(usuarioGuardado);
+
+      const tipoDocente = user.institucionId
+        ? "institucional"
+        : "independiente";
+
+      setDocente({
+        id: user.id,
+        tipo: tipoDocente,
+      });
+
+      const res = await fetch("/api/aulas");
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "Error al cargar aulas");
+        return;
+      }
+
+      const aulasFiltradas =
+        tipoDocente === "institucional"
+          ? data.filter((aula: Aula) => aula.docenteId === user.id)
+          : data.filter((aula: Aula) => aula.creadoPorId === user.id);
+
+      setAulas(aulasFiltradas);
+    } catch (error) {
+      console.error("Error al cargar aulas:", error);
+      alert("Error al conectar con el servidor");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const cargarEstudiantes = async (aulaId: number) => {
+    try {
+      const res = await fetch(`/api/estudiantes?aulaId=${aulaId}`);
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "Error al cargar estudiantes");
+        return;
+      }
+
+      setAlumnos(data);
+    } catch (error) {
+      console.error("Error al cargar estudiantes:", error);
+      alert("Error al conectar con el servidor");
+    }
+  };
+
+  useEffect(() => {
+    cargarAulas();
+  }, []);
 
   const aulaActual = aulas.find((aula) => aula.id === aulaSeleccionada);
 
@@ -92,94 +143,143 @@ export default function DocenteAulasPage() {
           </div>
         </div>
 
-        {!aulaSeleccionada && (
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
-            {aulas.map((aula) => (
-              <article
-                key={aula.id}
-                className={`${aula.color} rounded-[2rem] p-8 shadow-xl transition hover:scale-[1.02]`}
-              >
-                <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-white text-5xl shadow-md">
-                  {aula.icono}
+        {loading ? (
+          <p className="text-xl font-bold text-slate-600">Cargando aulas...</p>
+        ) : (
+          <>
+            {!aulaSeleccionada && (
+              <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
+                {aulas.length === 0 ? (
+                  <p className="text-lg font-bold text-slate-600">
+                    No tienes aulas disponibles.
+                  </p>
+                ) : (
+                  aulas.map((aula, index) => (
+                    <article
+                      key={aula.id}
+                      className={`${
+                        index % 3 === 0
+                          ? "bg-green-100"
+                          : index % 3 === 1
+                          ? "bg-blue-100"
+                          : "bg-pink-100"
+                      } rounded-[2rem] p-8 shadow-xl transition hover:scale-[1.02]`}
+                    >
+                      <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-white text-5xl shadow-md">
+                        {index % 3 === 0
+                          ? "🧸"
+                          : index % 3 === 1
+                          ? "⭐"
+                          : "🐰"}
+                      </div>
+
+                      <h2 className="text-3xl font-extrabold text-purple-700">
+                        {aula.nombre}
+                      </h2>
+
+                      <p className="mt-4 text-lg font-semibold text-slate-700">
+                        🌞 Turno: {aula.turno}
+                      </p>
+
+                      <p className="mt-2 text-lg font-semibold text-slate-700">
+                        👦 Estudiantes: {aula.estudiantes?.length ?? 0}
+                      </p>
+
+                      <button
+                        onClick={() => {
+                          setAulaSeleccionada(aula.id);
+                          cargarEstudiantes(aula.id);
+                        }}
+                        className="mt-8 w-full rounded-2xl bg-white px-5 py-4 font-bold text-purple-700 shadow-md transition hover:scale-105"
+                      >
+                        Ver detalle →
+                      </button>
+                    </article>
+                  ))
+                )}
+              </div>
+            )}
+
+            {aulaSeleccionada && aulaActual && (
+              <div className="rounded-[2rem] bg-white/80 p-8 shadow-xl">
+                <div className="mb-6 flex items-center justify-between">
+                  <div>
+                    <h2 className="text-3xl font-extrabold text-purple-700">
+                      🏫 {aulaActual.nombre}
+                    </h2>
+
+                    <p className="mt-1 text-slate-600">
+                      Lista básica de estudiantes del aula seleccionada.
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setAulaSeleccionada(null);
+                      setAlumnos([]);
+                    }}
+                    className="rounded-2xl bg-purple-500 px-6 py-3 font-bold text-white shadow-md transition hover:scale-105"
+                  >
+                    ← Volver a aulas
+                  </button>
                 </div>
 
-                <h2 className="text-3xl font-extrabold text-purple-700">
-                  {aula.nombre}
-                </h2>
+                <div className="overflow-hidden rounded-2xl border border-purple-100">
+                  <table className="w-full border-collapse bg-white text-left">
+                    <thead className="bg-purple-200 text-purple-900">
+                      <tr>
+                        <th className="p-4">Avatar</th>
+                        <th className="p-4">Nombre del estudiante</th>
+                        <th className="p-4">Puntos</th>
+                        <th className="p-4">Nivel</th>
+                        <th className="p-4">Aula</th>
+                      </tr>
+                    </thead>
 
-                <p className="mt-4 text-lg font-semibold text-slate-700">
-                  🌞 Turno: {aula.turno}
-                </p>
+                    <tbody>
+                      {alumnosDelAula.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={5}
+                            className="p-6 text-center font-semibold text-slate-500"
+                          >
+                            No hay estudiantes registrados en esta aula.
+                          </td>
+                        </tr>
+                      ) : (
+                        alumnosDelAula.map((alumno) => (
+                          <tr
+                            key={alumno.id}
+                            className="border-b border-purple-100 hover:bg-yellow-50"
+                          >
+                            <td className="p-4 text-3xl">
+                              {alumno.perfil?.avatar || "🧒"}
+                            </td>
 
-                <p className="mt-2 text-lg font-semibold text-slate-700">
-                  👦 Estudiantes: {aula.estudiantes}
-                </p>
+                            <td className="p-4 font-semibold text-slate-700">
+                              {alumno.nombres} {alumno.apellidos}
+                            </td>
 
-                <button
-                  onClick={() => setAulaSeleccionada(aula.id)}
-                  className="mt-8 w-full rounded-2xl bg-white px-5 py-4 font-bold text-purple-700 shadow-md transition hover:scale-105"
-                >
-                  Ver detalle →
-                </button>
-              </article>
-            ))}
-          </div>
-        )}
+                            <td className="p-4 text-slate-700">
+                              ⭐ {alumno.perfil?.puntosTotal ?? 0}
+                            </td>
 
-        {aulaSeleccionada && aulaActual && (
-          <div className="rounded-[2rem] bg-white/80 p-8 shadow-xl">
-            <div className="mb-6 flex items-center justify-between">
-              <div>
-                <h2 className="text-3xl font-extrabold text-purple-700">
-                  {aulaActual.icono} {aulaActual.nombre}
-                </h2>
+                            <td className="p-4 text-slate-700">
+                              Nivel {alumno.perfil?.nivel ?? 1}
+                            </td>
 
-                <p className="mt-1 text-slate-600">
-                  Lista básica de estudiantes del aula seleccionada.
-                </p>
+                            <td className="p-4 text-slate-700">
+                              {aulaActual.nombre}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-
-              <button
-                onClick={() => setAulaSeleccionada(null)}
-                className="rounded-2xl bg-purple-500 px-6 py-3 font-bold text-white shadow-md transition hover:scale-105"
-              >
-                ← Volver a aulas
-              </button>
-            </div>
-
-            <div className="overflow-hidden rounded-2xl border border-purple-100">
-              <table className="w-full border-collapse bg-white text-left">
-                <thead className="bg-purple-200 text-purple-900">
-                  <tr>
-                    <th className="p-4">Avatar</th>
-                    <th className="p-4">Nombre del estudiante</th>
-                    <th className="p-4">Edad</th>
-                    <th className="p-4">Aula</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {alumnosDelAula.map((alumno) => (
-                    <tr
-                      key={alumno.id}
-                      className="border-b border-purple-100 hover:bg-yellow-50"
-                    >
-                      <td className="p-4 text-3xl">{alumno.avatar}</td>
-                      <td className="p-4 font-semibold text-slate-700">
-                        {alumno.nombre}
-                      </td>
-                      <td className="p-4 text-slate-700">
-                        {alumno.edad} años
-                      </td>
-                      <td className="p-4 text-slate-700">
-                        {aulaActual.nombre}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+            )}
+          </>
         )}
       </section>
     </main>

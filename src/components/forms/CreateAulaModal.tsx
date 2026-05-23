@@ -111,11 +111,12 @@ export default function CreateAulaModal({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
+              body: JSON.stringify({
           nombre,
           turno,
-          institucionId: admin.institucionId,
-          docenteId: docenteId || null,
+          institucionId: admin.institucionId || null,
+          docenteId,
+          creadoPorId: admin.id,
         }),
       });
 

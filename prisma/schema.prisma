@@ -25,6 +25,7 @@ model Usuario {
 
   institucion        Institucion? @relation(fields: [institucionId], references: [id])
   aulasDocente       Aula[]       @relation("DocenteAulas")
+  aulasCreadas       Aula[]       @relation("AulasCreadas")
 }
 
 model Institucion {
@@ -43,11 +44,13 @@ model Aula {
   turno         String
   institucionId Int?
   docenteId     Int?
+  creadoPorId   Int?
   createdAt     DateTime @default(now())
 
   institucion   Institucion? @relation(fields: [institucionId], references: [id])
   docente       Usuario?     @relation("DocenteAulas", fields: [docenteId], references: [id])
   estudiantes   Estudiante[]
+  creadoPor     Usuario?     @relation("AulasCreadas", fields: [creadoPorId], references: [id])
 }
 
 model Estudiante {

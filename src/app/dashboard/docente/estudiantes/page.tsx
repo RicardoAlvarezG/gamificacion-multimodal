@@ -1,84 +1,181 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import CreateEstudianteModal from "@/components/forms/CreateEstudianteModal";
+import EditEstudianteModal from "@/components/forms/EditEstudianteModal";
 
-const aulas = [
-  {
-    id: 1,
-    nombre: "Aula Ositos",
-    icono: "🧸",
-    color: "bg-green-100",
-  },
-  {
-    id: 2,
-    nombre: "Aula Estrellitas",
-    icono: "⭐",
-    color: "bg-blue-100",
-  },
-  {
-    id: 3,
-    nombre: "Aula Conejitos",
-    icono: "🐰",
-    color: "bg-pink-100",
-  },
-];
+type Aula = {
+  id: number;
+  nombre: string;
+  turno: string;
+  docenteId?: number | null;
+  creadoPorId?: number | null;
+  estudiantes?: Estudiante[];
+};
 
-const avataresDisponibles = ["🐻", "🦊", "🐰", "🐼", "🦁", "🐯", "🐨", "🐸"];
-
-const estudiantesIniciales = [
-  {
-    id: 1,
-    aulaId: 1,
-    nombre: "Mateo Ramírez",
-    edad: 5,
-    puntos: 250,
-    avatar: "🐻",
-  },
-  {
-    id: 2,
-    aulaId: 1,
-    nombre: "Lucía Torres",
-    edad: 4,
-    puntos: 180,
-    avatar: "",
-  },
-  {
-    id: 3,
-    aulaId: 2,
-    nombre: "Thiago Castillo",
-    edad: 5,
-    puntos: 400,
-    avatar: "🐯",
-  },
-];
+type Estudiante = {
+  id: number;
+  aulaId: number;
+  nombres: string;
+  apellidos: string;
+  perfil?: {
+    avatar?: string | null;
+    nivel: number;
+    puntosTotal: number;
+  } | null;
+};
 
 export default function DocenteEstudiantesPage() {
+  const [aulas, setAulas] = useState<Aula[]>([]);
+  const [estudiantes, setEstudiantes] = useState<Estudiante[]>([]);
   const [aulaSeleccionada, setAulaSeleccionada] = useState<number | null>(null);
-  const [estudiantes, setEstudiantes] = useState(estudiantesIniciales);
-  const [estudianteSeleccionado, setEstudianteSeleccionado] = useState<any>(null);
+  const [estudianteSeleccionado, setEstudianteSeleccionado] =
+    useState<Estudiante | null>(null);
   const [mostrarAvatares, setMostrarAvatares] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-  const alumnosDelAula = estudiantes.filter(
-    (estudiante) => estudiante.aulaId === aulaSeleccionada
-  );
+  const avataresDisponibles = ["🐻", "🦊", "🐰", "🐼", "🦁", "🐯", "🐨", "🐸"];
 
-  const aulaActual = aulas.find((aula) => aula.id === aulaSeleccionada);
+  const cargarAulas = async () => {
+    try {
+      const usuarioGuardado = localStorage.getItem("usuario");
+
+      if (!usuarioGuardado) {
+        alert("No hay usuario logueado");
+        return;
+      }
+
+      const user = JSON.parse(usuarioGuardado);
+      const tipoDocente = user.institucionId ? "institucional" : "independiente";
+
+      const res = await fetch("/api/aulas");
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "Error al cargar aulas");
+        return;
+      }
+
+      const aulasFiltradas =
+        tipoDocente === "institucional"
+          ? data.filter((aula: Aula) => aula.docenteId === user.id)
+          : data.filter((aula: Aula) => aula.creadoPorId === user.id);
+
+      setAulas(aulasFiltradas);
+    } catch (error) {
+      console.error("Error al cargar aulas:", error);
+      alert("Error al conectar con el servidor");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const cargarEstudiantes = async (aulaId: number) => {
+    try {
+      const res = await fetch(`/api/estudiantes?aulaId=${aulaId}`);
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "Error al cargar estudiantes");
+        return;
+      }
+
+      setEstudiantes(data);
+    } catch (error) {
+      console.error("Error al cargar estudiantes:", error);
+      alert("Error al conectar con el servidor");
+    }
+  };
+
+  useEffect(() => {
+    cargarAulas();
+  }, []);
+
+  const eliminarEstudiante = async (estudianteId: number) => {
+    const password = prompt("Confirma tu contraseña:");
+
+    if (!password) {
+      alert("Debes ingresar tu contraseña");
+      return;
+    }
+
+    const usuarioGuardado = localStorage.getItem("usuario");
+
+    if (!usuarioGuardado) {
+      alert("No hay usuario logueado");
+      return;
+    }
+
+    const user = JSON.parse(usuarioGuardado);
+
+    try {
+      const validacion = await fetch("/api/validar-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          usuarioId: user.id,
+          password,
+        }),
+      });
+
+      const resultado = await validacion.json();
+
+      if (!validacion.ok) {
+        alert(resultado.error || "Contraseña incorrecta");
+        return;
+      }
+
+      const res = await fetch("/api/estudiantes", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          estudianteId,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "Error al eliminar estudiante");
+        return;
+      }
+
+      alert("Estudiante eliminado correctamente");
+
+      if (aulaSeleccionada) {
+        cargarEstudiantes(aulaSeleccionada);
+      }
+
+      setEstudianteSeleccionado(null);
+    } catch (error) {
+      console.error(error);
+      alert("Error al conectar con el servidor");
+    }
+  };
 
   const seleccionarAvatar = (avatar: string) => {
-    const actualizados = estudiantes.map((est) =>
-      est.id === estudianteSeleccionado.id ? { ...est, avatar } : est
-    );
+    if (!estudianteSeleccionado) return;
 
-    setEstudiantes(actualizados);
+    setEstudianteSeleccionado({
+      ...estudianteSeleccionado,
+      perfil: {
+        nivel: estudianteSeleccionado.perfil?.nivel ?? 1,
+        puntosTotal: estudianteSeleccionado.perfil?.puntosTotal ?? 0,
+        avatar,
+      },
+    });
 
-    const actualizado = actualizados.find(
-      (est) => est.id === estudianteSeleccionado.id
-    );
-
-    setEstudianteSeleccionado(actualizado);
     setMostrarAvatares(false);
   };
+
+  const aulaActual = aulas.find((aula) => aula.id === aulaSeleccionada);
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-pink-200 via-yellow-100 to-blue-200 p-6">
@@ -108,162 +205,247 @@ export default function DocenteEstudiantesPage() {
           </Link>
         </div>
 
-        {!aulaSeleccionada && (
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
-            {aulas.map((aula) => (
-              <button
-                key={aula.id}
-                onClick={() => setAulaSeleccionada(aula.id)}
-                className={`${aula.color} rounded-[2rem] p-8 text-left shadow-xl transition hover:scale-[1.02]`}
-              >
-                <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-white text-5xl shadow-md">
-                  {aula.icono}
+        {loading ? (
+          <p className="text-xl font-bold text-slate-600">Cargando aulas...</p>
+        ) : (
+          <>
+            {!aulaSeleccionada && (
+              <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
+                {aulas.map((aula, index) => (
+                  <button
+                    key={aula.id}
+                    onClick={() => {
+                      setAulaSeleccionada(aula.id);
+                      cargarEstudiantes(aula.id);
+                    }}
+                    className={`${
+                      index % 3 === 0
+                        ? "bg-green-100"
+                        : index % 3 === 1
+                        ? "bg-blue-100"
+                        : "bg-pink-100"
+                    } rounded-[2rem] p-8 text-left shadow-xl transition hover:scale-[1.02]`}
+                  >
+                    <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-white text-5xl shadow-md">
+                      {index % 3 === 0 ? "🧸" : index % 3 === 1 ? "⭐" : "🐰"}
+                    </div>
+
+                    <h2 className="text-3xl font-extrabold text-purple-700">
+                      {aula.nombre}
+                    </h2>
+
+                    <p className="mt-4 font-semibold text-slate-700">
+                      Click para gestionar estudiantes
+                    </p>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {aulaSeleccionada && aulaActual && (
+              <div className="rounded-[2rem] bg-white/80 p-8 shadow-xl">
+                <div className="mb-6 flex items-center justify-between">
+                  <div>
+                    <h2 className="text-3xl font-extrabold text-purple-700">
+                      🏫 {aulaActual.nombre}
+                    </h2>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setIsCreateModalOpen(true)}
+                      className="rounded-2xl bg-green-400 px-6 py-3 font-bold text-green-950 shadow-md"
+                    >
+                      + Agregar estudiante
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setAulaSeleccionada(null);
+                        setEstudiantes([]);
+                      }}
+                      className="rounded-2xl bg-purple-500 px-6 py-3 font-bold text-white shadow-md"
+                    >
+                      ← Volver
+                    </button>
+                  </div>
                 </div>
 
-                <h2 className="text-3xl font-extrabold text-purple-700">
-                  {aula.nombre}
-                </h2>
+                <div className="overflow-hidden rounded-2xl border border-purple-100">
+                  <table className="w-full border-collapse bg-white">
+                    <thead className="bg-purple-200">
+                      <tr>
+                        <th className="p-4 text-left">Nombre</th>
+                        <th className="p-4 text-left">Puntos</th>
+                        <th className="p-4 text-left">Nivel</th>
+                        <th className="p-4 text-center">Detalle</th>
+                        <th className="p-4 text-center">Acciones</th>
+                      </tr>
+                    </thead>
 
-                <p className="mt-4 font-semibold text-slate-700">
-                  Click para gestionar estudiantes
-                </p>
-              </button>
-            ))}
-          </div>
-        )}
+                    <tbody>
+                      {estudiantes.length === 0 ? (
+                        <tr>
+                          <td
+                            colSpan={5}
+                            className="p-6 text-center font-semibold text-slate-500"
+                          >
+                            No hay estudiantes registrados en esta aula.
+                          </td>
+                        </tr>
+                      ) : (
+                        estudiantes.map((estudiante) => (
+                          <tr
+                            key={estudiante.id}
+                            className="border-b border-purple-100 hover:bg-yellow-50"
+                          >
+                            <td className="p-4 font-semibold text-slate-700">
+                              {estudiante.nombres} {estudiante.apellidos}
+                            </td>
 
-        {aulaSeleccionada && aulaActual && (
-          <div className="rounded-[2rem] bg-white/80 p-8 shadow-xl">
-            <div className="mb-6 flex items-center justify-between">
-              <div>
-                <h2 className="text-3xl font-extrabold text-purple-700">
-                  {aulaActual.icono} {aulaActual.nombre}
-                </h2>
+                            <td className="p-4">
+                              ⭐ {estudiante.perfil?.puntosTotal ?? 0}
+                            </td>
+
+                            <td className="p-4">
+                              Nivel {estudiante.perfil?.nivel ?? 1}
+                            </td>
+
+                            <td className="p-4 text-center">
+                              <button
+                                onClick={() =>
+                                  setEstudianteSeleccionado(estudiante)
+                                }
+                                className="rounded-full bg-blue-200 px-4 py-2 text-xl shadow-md"
+                              >
+                                🔍
+                              </button>
+                            </td>
+
+                            <td className="p-4 text-center">
+                              <div className="flex justify-center gap-2">
+                                <button
+                                  onClick={() => {
+                                    setEstudianteSeleccionado(estudiante);
+                                    setIsEditModalOpen(true);
+                                  }}
+                                  className="rounded-full bg-yellow-200 px-4 py-2 text-xl shadow-md"
+                                >
+                                  ✏️
+                                </button>
+
+                                <button
+                                  onClick={() =>
+                                    eliminarEstudiante(estudiante.id)
+                                  }
+                                  className="rounded-full bg-red-200 px-4 py-2 text-xl shadow-md"
+                                >
+                                  🗑️
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
+            )}
 
-              <div className="flex gap-3">
-                <button className="rounded-2xl bg-green-400 px-6 py-3 font-bold text-green-950 shadow-md">
-                  + Agregar estudiante
-                </button>
+            {estudianteSeleccionado && !isEditModalOpen && (
+              <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-6">
+                <div className="w-full max-w-md rounded-[2rem] bg-gradient-to-br from-purple-100 via-pink-100 to-yellow-100 p-8 shadow-2xl">
+                  <div className="mb-5 flex items-center justify-between">
+                    <h3 className="text-3xl font-extrabold text-purple-700">
+                      Estudiante
+                    </h3>
 
-                <button
-                  onClick={() => setAulaSeleccionada(null)}
-                  className="rounded-2xl bg-purple-500 px-6 py-3 font-bold text-white shadow-md"
-                >
-                  ← Volver
-                </button>
-              </div>
-            </div>
-
-            <div className="overflow-hidden rounded-2xl border border-purple-100">
-              <table className="w-full border-collapse bg-white">
-                <thead className="bg-purple-200">
-                  <tr>
-                    <th className="p-4 text-left">Nombre</th>
-                    <th className="p-4 text-left">Edad</th>
-                    <th className="p-4 text-left">Puntos</th>
-                    <th className="p-4 text-center">Detalle</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {alumnosDelAula.map((estudiante) => (
-                    <tr
-                      key={estudiante.id}
-                      className="border-b border-purple-100 hover:bg-yellow-50"
-                    >
-                      <td className="p-4 font-semibold text-slate-700">
-                        {estudiante.nombre}
-                      </td>
-
-                      <td className="p-4">{estudiante.edad} años</td>
-
-                      <td className="p-4">⭐ {estudiante.puntos}</td>
-
-                      <td className="p-4 text-center">
-                        <button
-                          onClick={() =>
-                            setEstudianteSeleccionado(estudiante)
-                          }
-                          className="rounded-full bg-blue-200 px-4 py-2 text-xl shadow-md"
-                        >
-                          🔍
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {estudianteSeleccionado && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-6">
-            <div className="w-full max-w-md rounded-[2rem] bg-gradient-to-br from-purple-100 via-pink-100 to-yellow-100 p-8 shadow-2xl">
-              <div className="mb-5 flex items-center justify-between">
-                <h3 className="text-3xl font-extrabold text-purple-700">
-                  Estudiante
-                </h3>
-
-                <button
-                  onClick={() => setEstudianteSeleccionado(null)}
-                  className="rounded-full bg-white px-4 py-2 font-bold"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <div className="mb-6 flex justify-center">
-                <div className="relative flex h-32 w-32 items-center justify-center rounded-full bg-white text-7xl shadow-lg">
-                  {estudianteSeleccionado.avatar || "👤"}
-
-                  {!estudianteSeleccionado.avatar && (
                     <button
-                      onClick={() => setMostrarAvatares(true)}
-                      className="absolute bottom-0 right-0 rounded-full bg-yellow-300 px-3 py-2 shadow-md"
+                      onClick={() => setEstudianteSeleccionado(null)}
+                      className="rounded-full bg-white px-4 py-2 font-bold"
                     >
-                      ✏️
+                      ✕
                     </button>
+                  </div>
+
+                  <div className="mb-6 flex justify-center">
+                    <div className="relative flex h-32 w-32 items-center justify-center rounded-full bg-white text-7xl shadow-lg">
+                      {estudianteSeleccionado.perfil?.avatar || "👤"}
+
+                      {!estudianteSeleccionado.perfil?.avatar && (
+                        <button
+                          onClick={() => setMostrarAvatares(true)}
+                          className="absolute bottom-0 right-0 rounded-full bg-yellow-300 px-3 py-2 shadow-md"
+                        >
+                          ✏️
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-3 rounded-2xl bg-white/80 p-6">
+                    <p>
+                      <strong>Nombre:</strong>{" "}
+                      {estudianteSeleccionado.nombres}{" "}
+                      {estudianteSeleccionado.apellidos}
+                    </p>
+
+                    <p>
+                      <strong>Puntos:</strong> ⭐{" "}
+                      {estudianteSeleccionado.perfil?.puntosTotal ?? 0}
+                    </p>
+
+                    <p>
+                      <strong>Nivel:</strong> Nivel{" "}
+                      {estudianteSeleccionado.perfil?.nivel ?? 1}
+                    </p>
+                  </div>
+
+                  {mostrarAvatares && (
+                    <div className="mt-6 rounded-2xl bg-white p-5 shadow-md">
+                      <h4 className="mb-4 text-center font-bold text-purple-700">
+                        Selecciona un avatar
+                      </h4>
+
+                      <div className="grid grid-cols-4 gap-4">
+                        {avataresDisponibles.map((avatar) => (
+                          <button
+                            key={avatar}
+                            onClick={() => seleccionarAvatar(avatar)}
+                            className="rounded-2xl bg-purple-100 p-4 text-4xl transition hover:scale-110"
+                          >
+                            {avatar}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
               </div>
+            )}
 
-              <div className="space-y-3 rounded-2xl bg-white/80 p-6">
-                <p>
-                  <strong>Nombre:</strong> {estudianteSeleccionado.nombre}
-                </p>
+            {aulaSeleccionada && (
+              <CreateEstudianteModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                aulaId={aulaSeleccionada}
+                onCreated={() => cargarEstudiantes(aulaSeleccionada)}
+              />
+            )}
 
-                <p>
-                  <strong>Edad:</strong> {estudianteSeleccionado.edad} años
-                </p>
-
-                <p>
-                  <strong>Puntos:</strong> ⭐ {estudianteSeleccionado.puntos}
-                </p>
-              </div>
-
-              {mostrarAvatares && (
-                <div className="mt-6 rounded-2xl bg-white p-5 shadow-md">
-                  <h4 className="mb-4 text-center font-bold text-purple-700">
-                    Selecciona un avatar
-                  </h4>
-
-                  <div className="grid grid-cols-4 gap-4">
-                    {avataresDisponibles.map((avatar) => (
-                      <button
-                        key={avatar}
-                        onClick={() => seleccionarAvatar(avatar)}
-                        className="rounded-2xl bg-purple-100 p-4 text-4xl transition hover:scale-110"
-                      >
-                        {avatar}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
+            <EditEstudianteModal
+              isOpen={isEditModalOpen}
+              onClose={() => setIsEditModalOpen(false)}
+              estudiante={estudianteSeleccionado}
+              aulaId={aulaSeleccionada || 0}
+              onUpdated={() => {
+                if (aulaSeleccionada) {
+                  cargarEstudiantes(aulaSeleccionada);
+                }
+              }}
+            />
+          </>
         )}
       </section>
     </main>
