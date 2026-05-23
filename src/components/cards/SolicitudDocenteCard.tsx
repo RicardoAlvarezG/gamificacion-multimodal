@@ -1,13 +1,17 @@
 interface SolicitudDocenteCardProps {
+  id: number;
   nombre: string;
   usuario: string;
   codigo: string;
+  onAprobar: (id: number) => void;
 }
 
 export default function SolicitudDocenteCard({
+  id,
   nombre,
   usuario,
   codigo,
+  onAprobar,
 }: SolicitudDocenteCardProps) {
   return (
     <div className="rounded-[2rem] bg-white p-7 shadow-xl border border-yellow-100 transition hover:-translate-y-2 hover:shadow-2xl">
@@ -29,7 +33,10 @@ export default function SolicitudDocenteCard({
       </div>
 
       <div className="mt-7 flex gap-3">
-        <button className="w-full rounded-3xl bg-green-100 px-4 py-4 font-extrabold text-green-700 hover:bg-green-200">
+        <button
+          onClick={() => onAprobar(id)}
+          className="w-full rounded-3xl bg-green-100 px-4 py-4 font-extrabold text-green-700 hover:bg-green-200"
+        >
           Aceptar
         </button>
 

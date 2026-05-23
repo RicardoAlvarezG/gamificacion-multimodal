@@ -1,13 +1,100 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import DocenteCard from "@/components/cards/DocenteCard";
 import SolicitudDocenteCard from "@/components/cards/SolicitudDocenteCard";
 
+type Docente = {
+  id: number;
+  nombre: string;
+  usuario: string;
+  correo: string;
+  estado: string;
+};
+
 export default function DocentesPage() {
   const [activeTab, setActiveTab] = useState<"docentes" | "solicitudes">(
     "docentes"
+  );
+  const [docentes, setDocentes] = useState<Docente[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const cargarDocentes = async () => {
+      try {
+        const usuarioGuardado = localStorage.getItem("usuario");
+
+        if (!usuarioGuardado) {
+          alert("No hay usuario logueado");
+          return;
+        }
+
+        const user = JSON.parse(usuarioGuardado);
+
+        if (!user.institucionId) {
+          alert(
+            "No se encontró la institución del administrador. Vuelve a iniciar sesión."
+          );
+          return;
+        }
+
+        const res = await fetch(
+          `/api/docentes?institucionId=${user.institucionId}`
+        );
+        const data = await res.json();
+
+        if (!res.ok) {
+          alert(data.error || "Error al cargar docentes");
+          return;
+        }
+
+        setDocentes(data);
+      } catch {
+        alert("Error de conexión al cargar docentes");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    cargarDocentes();
+  }, []);
+
+  const aprobarDocente = async (id: number) => {
+    try {
+      const res = await fetch("/api/docentes/aprobar", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "Error al aprobar docente");
+        return;
+      }
+
+      setDocentes((prev) =>
+        prev.map((docente) =>
+          docente.id === id ? { ...docente, estado: "activo" } : docente
+        )
+      );
+
+      alert("Docente aprobado correctamente");
+    } catch {
+      alert("Error de conexión al aprobar docente");
+    }
+  };
+
+  const docentesActivos = docentes.filter(
+    (docente) => docente.estado === "activo"
+  );
+
+  const docentesPendientes = docentes.filter(
+    (docente) => docente.estado === "pendiente"
   );
 
   return (
@@ -58,35 +145,44 @@ export default function DocentesPage() {
         </button>
       </div>
 
-      {activeTab === "docentes" ? (
+      {loading ? (
+        <p className="text-lg font-bold text-slate-500">Cargando docentes...</p>
+      ) : activeTab === "docentes" ? (
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
-          <DocenteCard
-            nombre="María Pérez"
-            usuario="DOC-001"
-            aulas={2}
-            estado="Activo"
-          />
-
-          <DocenteCard
-            nombre="Carlos López"
-            usuario="DOC-002"
-            aulas={1}
-            estado="Activo"
-          />
+          {docentesActivos.length === 0 ? (
+            <p className="text-lg font-bold text-slate-500">
+              No hay docentes registrados activos.
+            </p>
+          ) : (
+            docentesActivos.map((docente) => (
+              <DocenteCard
+                key={docente.id}
+                nombre={docente.nombre}
+                usuario={docente.usuario}
+                aulas={0}
+                estado="Activo"
+              />
+            ))
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
-          <SolicitudDocenteCard
-            nombre="Ana Torres"
-            usuario="DOC-003"
-            codigo="INST-X4K92A"
-          />
-
-          <SolicitudDocenteCard
-            nombre="Luis Ramírez"
-            usuario="DOC-004"
-            codigo="INST-X4K92A"
-          />
+          {docentesPendientes.length === 0 ? (
+            <p className="text-lg font-bold text-slate-500">
+              No hay solicitudes pendientes.
+            </p>
+          ) : (
+            docentesPendientes.map((docente) => (
+              <SolicitudDocenteCard
+                key={docente.id}
+                id={docente.id}
+                nombre={docente.nombre}
+                usuario={docente.usuario}
+                codigo="Pendiente de aprobación"
+                onAprobar={aprobarDocente}
+              />
+            ))
+          )}
         </div>
       )}
     </div>

@@ -48,6 +48,7 @@ export async function POST(req: Request) {
         usuario: user.usuario,
         rol: user.rol,
         codigoInstitucional: user.codigoInstitucional,
+        institucionId: user.institucionId,
         }
     });
   } catch (error) {
