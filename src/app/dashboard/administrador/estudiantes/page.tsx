@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import CreateEstudianteModal from "@/components/forms/CreateEstudianteModal";
+import EditEstudianteModal from "@/components/forms/EditEstudianteModal";
 
 type Aula = {
   id: number;
@@ -37,6 +38,7 @@ export default function EstudiantesPage() {
     useState<Estudiante | null>(null);
   const [loading, setLoading] = useState(true);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   const cargarAulas = async () => {
     try {
@@ -91,6 +93,71 @@ export default function EstudiantesPage() {
   useEffect(() => {
     cargarAulas();
   }, []);
+  const eliminarEstudiante = async (estudianteId: number) => {
+  const password = prompt("Confirma tu contraseña de administrador:");
+
+  if (!password) {
+    alert("Debes ingresar tu contraseña");
+    return;
+  }
+
+  const usuarioGuardado = localStorage.getItem("usuario");
+
+  if (!usuarioGuardado) {
+    alert("No hay usuario logueado");
+    return;
+  }
+
+  const admin = JSON.parse(usuarioGuardado);
+
+  try {
+    const validacion = await fetch("/api/validar-password", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        usuarioId: admin.id,
+        password,
+      }),
+    });
+
+    const resultado = await validacion.json();
+
+    if (!validacion.ok) {
+      alert(resultado.error || "Contraseña incorrecta");
+      return;
+    }
+
+    const res = await fetch("/api/estudiantes", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        estudianteId,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error || "Error al eliminar estudiante");
+      return;
+    }
+
+    alert("Estudiante eliminado correctamente");
+
+    if (aulaSeleccionada) {
+      cargarEstudiantes(aulaSeleccionada);
+    }
+
+    setEstudianteSeleccionado(null);
+  } catch (error) {
+    console.error(error);
+    alert("Error al conectar con el servidor");
+  }
+};
 
   const alumnosDelAula = estudiantes.filter(
     (estudiante) => estudiante.aulaId === aulaSeleccionada
@@ -207,6 +274,7 @@ export default function EstudiantesPage() {
                         <th className="p-4">Puntos</th>
                         <th className="p-4">Nivel</th>
                         <th className="p-4 text-center">Detalle</th>
+                        <th className="p-4 text-center">Acciones</th>
                       </tr>
                     </thead>
 
@@ -247,6 +315,26 @@ export default function EstudiantesPage() {
                               >
                                 🔍
                               </button>
+                            </td>
+                            <td className="p-4 text-center">
+                              <div className="flex justify-center gap-2">
+                              <button
+                                onClick={() => {
+                                  setEstudianteSeleccionado(estudiante);
+                                  setIsEditModalOpen(true);
+                                }}
+                                className="rounded-full bg-yellow-200 px-4 py-2 text-xl shadow-md transition hover:scale-110"
+                              >
+                                ✏️
+                              </button>
+
+                                <button
+                                  onClick={() => eliminarEstudiante(estudiante.id)}
+                                  className="rounded-full bg-red-200 px-4 py-2 text-xl shadow-md transition hover:scale-110"
+                                >
+                                  🗑️
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         ))
@@ -312,6 +400,17 @@ export default function EstudiantesPage() {
                 onCreated={() => cargarEstudiantes(aulaSeleccionada)}
               />
             )}
+              <EditEstudianteModal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                estudiante={estudianteSeleccionado}
+                aulaId={aulaSeleccionada || 0}
+                onUpdated={() => {
+                  if (aulaSeleccionada) {
+                    cargarEstudiantes(aulaSeleccionada);
+                  }
+                }}
+              />
           </>
         )}
       </section>
