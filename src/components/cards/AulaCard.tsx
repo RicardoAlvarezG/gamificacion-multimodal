@@ -1,9 +1,12 @@
+import Link from "next/link";
+
 interface AulaCardProps {
   name: string;
   docente: string;
   turno: "Mañana" | "Tarde";
   estado: "Activa" | "Docente en espera";
   emoji?: string;
+  href?: string;
 }
 
 export default function AulaCard({
@@ -12,6 +15,7 @@ export default function AulaCard({
   turno,
   estado,
   emoji = "🐰",
+  href = "#",
 }: AulaCardProps) {
   return (
     <div className="relative flex min-h-[360px] flex-col justify-between overflow-hidden rounded-[2rem] border border-pink-100 bg-white p-7 shadow-xl transition hover:-translate-y-2 hover:shadow-2xl">
@@ -42,9 +46,12 @@ export default function AulaCard({
         </div>
       </div>
 
-      <button className="relative z-10 mt-8 rounded-3xl bg-purple-100 px-5 py-4 text-lg font-extrabold text-purple-700 shadow-md transition hover:bg-purple-200">
+      <Link
+        href={href}
+        className="relative z-10 mt-8 rounded-3xl bg-purple-100 px-5 py-4 text-center text-lg font-extrabold text-purple-700 shadow-md transition hover:bg-purple-200"
+      >
         Ver aula →
-      </button>
+      </Link>
     </div>
   );
 }
