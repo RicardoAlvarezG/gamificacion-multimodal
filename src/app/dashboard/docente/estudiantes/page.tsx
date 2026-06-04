@@ -160,8 +160,27 @@ export default function DocenteEstudiantesPage() {
     }
   };
 
-  const seleccionarAvatar = (avatar: string) => {
-    if (!estudianteSeleccionado) return;
+ const seleccionarAvatar = async (avatar: string) => {
+  if (!estudianteSeleccionado) return;
+
+  try {
+    const res = await fetch("/api/gamificacion/avatar", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        estudianteId: estudianteSeleccionado.id,
+        avatar,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error || "Error al guardar avatar");
+      return;
+    }
 
     setEstudianteSeleccionado({
       ...estudianteSeleccionado,
@@ -172,8 +191,18 @@ export default function DocenteEstudiantesPage() {
       },
     });
 
+    if (aulaSeleccionada) {
+      cargarEstudiantes(aulaSeleccionada);
+    }
+
     setMostrarAvatares(false);
-  };
+
+    alert("Avatar asignado correctamente");
+  } catch (error) {
+    console.error("Error al guardar avatar:", error);
+    alert("Error al guardar avatar");
+  }
+};
 
   const aulaActual = aulas.find((aula) => aula.id === aulaSeleccionada);
 
