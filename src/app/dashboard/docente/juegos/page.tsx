@@ -1,19 +1,116 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
-const aulas = [
-  { id: 1, nombre: "Aula Ositos", icono: "🧸", color: "bg-green-100" },
-  { id: 2, nombre: "Aula Estrellitas", icono: "⭐", color: "bg-blue-100" },
-  { id: 3, nombre: "Aula Conejitos", icono: "🐰", color: "bg-pink-100" },
-];
+type Aula = {
+  id: number;
+  nombre: string;
+  turno: string;
+  docenteId?: number | null;
+  creadoPorId?: number | null;
+};
+type Estudiante = {
+  id: number;
+  nombres: string;
+  apellidos: string;
+  perfil?: {
+    avatar?: string | null;
+    nivel: number;
+    puntosTotal: number;
+  } | null;
+};
 
 export default function DocenteJuegosPage() {
   const [aulaSeleccionada, setAulaSeleccionada] = useState<any>(null);
-
+  const [aulas, setAulas] = useState<Aula[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [estudiantes, setEstudiantes] = useState<Estudiante[]>([]);
+  const [juegoIniciado, setJuegoIniciado] = useState(false);
   const fechaActual = new Date().toLocaleDateString("es-PE");
   const nombreSesion = "Sesión 1";
+  const cargarAulas = async () => {
+  try {
+    const usuarioGuardado = localStorage.getItem("usuario");
+
+    if (!usuarioGuardado) return;
+
+    const usuario = JSON.parse(usuarioGuardado);
+
+    const res = await fetch("/api/aulas");
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error || "Error al cargar aulas");
+      return;
+    }
+
+    let aulasFiltradas = [];
+
+    if (usuario.rol === "DOCENTE") {
+      // Docente institucional
+      if (usuario.institucionId) {
+        aulasFiltradas = data.filter(
+          (aula: any) => aula.docenteId === usuario.id
+        );
+      }
+      // Docente independiente
+      else {
+        aulasFiltradas = data.filter(
+          (aula: any) => aula.creadoPorId === usuario.id
+        );
+      }
+    }
+
+    setAulas(aulasFiltradas);
+      } catch (error) {
+        console.error("Error cargando aulas:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const iniciarJuego = async () => {
+      if (!aulaSeleccionada) return;
+
+      try {
+        const res = await fetch(`/api/aulas/${aulaSeleccionada.id}`);
+        const data = await res.json();
+
+        if (!res.ok) {
+          alert(data.error || "Error al cargar estudiantes");
+          return;
+        }
+
+        const estudiantesAula = data.estudiantes || [];
+
+        for (const estudiante of estudiantesAula) {
+          await fetch("/api/gamificacion/puntos", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              estudianteId: estudiante.id,
+              puntos: 10,
+              motivo: "Participación en sesión de juego",
+            }),
+          });
+        }
+
+        setEstudiantes(estudiantesAula);
+        setJuegoIniciado(true);
+
+        alert("Sesión iniciada. Se asignaron 10 puntos a cada estudiante.");
+      } catch (error) {
+        console.error("Error al iniciar juego:", error);
+        alert("Error al iniciar juego");
+      }
+    };
+
+    useEffect(() => {
+      cargarAulas();
+    }, []);
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-pink-200 via-yellow-100 to-blue-200 p-6">
@@ -42,16 +139,22 @@ export default function DocenteJuegosPage() {
           </Link>
         </div>
 
-        {!aulaSeleccionada && (
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
+            {loading && (
+              <p className="text-xl font-bold text-slate-600">
+                Cargando aulas...
+              </p>
+            )}
+
+            {!loading && !aulaSeleccionada && (
+              <div className="grid grid-cols-1 gap-8 md:grid-cols-2 xl:grid-cols-3">
             {aulas.map((aula) => (
               <button
                 key={aula.id}
                 onClick={() => setAulaSeleccionada(aula)}
-                className={`${aula.color} rounded-[2rem] p-8 text-left shadow-xl transition hover:scale-[1.02]`}
+                className="rounded-[2rem] bg-purple-100 p-8 text-left shadow-xl transition hover:scale-[1.02]"
               >
                 <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-white text-5xl shadow-md">
-                  {aula.icono}
+                  🏫
                 </div>
 
                 <h2 className="text-3xl font-extrabold text-purple-700">
@@ -70,7 +173,7 @@ export default function DocenteJuegosPage() {
           <div className="mx-auto max-w-xl rounded-[2rem] bg-gradient-to-br from-purple-100 via-pink-100 to-yellow-100 p-8 shadow-xl">
             <div className="mb-6 text-center">
               <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-white text-6xl shadow-md">
-                {aulaSeleccionada.icono}
+                🏫
               </div>
 
               <h2 className="text-3xl font-extrabold text-purple-700">
@@ -104,7 +207,10 @@ export default function DocenteJuegosPage() {
                 ← Cambiar aula
               </button>
 
-              <button className="flex-1 rounded-2xl bg-green-400 px-6 py-4 font-bold text-green-950 shadow-md transition hover:scale-105">
+              <button
+                onClick={iniciarJuego}
+                className="flex-1 rounded-2xl bg-green-400 px-6 py-4 font-bold text-green-950 shadow-md transition hover:scale-105"
+              >
                 ▶ Iniciar juego
               </button>
             </div>
