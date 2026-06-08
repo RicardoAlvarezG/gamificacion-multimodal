@@ -20,6 +20,7 @@ export default function CreateAulaModal({
 }: CreateAulaModalProps) {
   const [nombre, setNombre] = useState("");
   const [turno, setTurno] = useState("Mañana");
+  const [grado, setGrado] = useState("3");
   const [docenteId, setDocenteId] = useState("");
   const [password, setPassword] = useState("");
   const [docentes, setDocentes] = useState<Docente[]>([]);
@@ -114,6 +115,7 @@ export default function CreateAulaModal({
               body: JSON.stringify({
           nombre,
           turno,
+          grado,
           institucionId: admin.institucionId || null,
           docenteId,
           creadoPorId: admin.id,
@@ -210,6 +212,22 @@ export default function CreateAulaModal({
             >
               <option value="Mañana">Mañana</option>
               <option value="Tarde">Tarde</option>
+            </select>
+          </div>
+
+          <div className="mt-4">
+            <label className="mb-2 block font-bold text-slate-700">
+              Grado / Edad
+            </label>
+
+            <select
+              value={grado}
+              onChange={(e) => setGrado(e.target.value)}
+              className="w-full rounded-2xl border border-purple-200 px-4 py-3 outline-none focus:border-purple-500"
+            >
+              <option value="3">Inicial 3 años</option>
+              <option value="4">Inicial 4 años</option>
+              <option value="5">Inicial 5 años</option>
             </select>
           </div>
 

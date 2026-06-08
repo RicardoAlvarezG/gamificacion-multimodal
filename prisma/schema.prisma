@@ -42,6 +42,7 @@ model Aula {
   id            Int      @id @default(autoincrement())
   nombre        String
   turno         String
+  grado         String   @default("3")
   institucionId Int?
   docenteId     Int?
   creadoPorId   Int?

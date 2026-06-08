@@ -105,6 +105,19 @@ async function main() {
         },
 
         {
+            nombre: "Caritas Felices",
+            grado: "3",
+            descripcion: "Juego para reconocer emociones básicas mediante expresiones faciales.",
+            capacidades: ["C08", "C02"],
+          },
+          {
+            nombre: "Clasifica y Agrupa",
+            grado: "3",
+            descripcion: "Juego para agrupar objetos según color, forma o tamaño.",
+            capacidades: ["C12", "C11"],
+        },
+
+        {
             nombre: "Las Vocales Perdidas",
             grado: "4",
             descripcion: "Juego para identificar vocales y relacionarlas con imágenes.",
@@ -127,6 +140,18 @@ async function main() {
             grado: "4",
             descripcion: "Juego para reconocer figuras geométricas y posiciones espaciales.",
             capacidades: ["C05", "C06", "C11"],
+        },
+        {
+            nombre: "Rutinas Diarias",
+            grado: "4",
+            descripcion: "Juego para ordenar acciones cotidianas y reconocer responsabilidades.",
+            capacidades: ["C10", "C07"],
+          },
+          {
+            nombre: "Trabajemos Juntos",
+            grado: "4",
+            descripcion: "Juego para resolver retos simples de manera colaborativa.",
+            capacidades: ["C09", "C02"],
         },
 
         {
@@ -152,6 +177,18 @@ async function main() {
             grado: "5",
             descripcion: "Juego para organizar partes de una imagen y resolver problemas visuales.",
             capacidades: ["C11", "C12", "C09"],
+        },
+        {
+          nombre: "Emociones en Acción",
+          grado: "5",
+          descripcion: "Juego para identificar situaciones emocionales y expresar respuestas.",
+          capacidades: ["C08", "C02"],
+        },
+        {
+          nombre: "Pequeños Retos",
+          grado: "5",
+          descripcion: "Juego para resolver desafíos simples aplicando lógica, autonomía y colaboración.",
+          capacidades: ["C10", "C09", "C07"],
         },
         ];
   for (const capacidad of capacidades) {

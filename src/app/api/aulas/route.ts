@@ -29,7 +29,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
 
-    const { nombre, turno, institucionId, docenteId, creadoPorId } = body;
+    const { nombre, turno, grado, institucionId, docenteId, creadoPorId } = body;
 
     if (!nombre || !turno) {
       return NextResponse.json(
@@ -42,6 +42,7 @@ export async function POST(req: Request) {
   data: {
     nombre,
     turno,
+    grado,
     ...(institucionId
       ? {
           institucion: {
