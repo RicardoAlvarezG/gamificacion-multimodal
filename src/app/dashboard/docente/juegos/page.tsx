@@ -168,14 +168,53 @@ export default function DocenteJuegosPage() {
     setEvaluaciones({});
   };
 
-  const guardarEvaluacion = () => {
+const guardarEvaluacion = async () => {
+  if (!juegoSeleccionado) return;
+
+  const evidenciasMarcadas = Object.keys(evaluaciones).filter(
+    (key) => evaluaciones[key]
+  );
+
+  if (evidenciasMarcadas.length === 0) {
+    alert("Debes marcar al menos una estrella antes de guardar.");
+    return;
+  }
+
+  try {
+    for (const key of evidenciasMarcadas) {
+      const [estudianteId, capacidadId] = key.split("-");
+
+      const res = await fetch("/api/gamificacion/evidencias", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          estudianteId: Number(estudianteId),
+          juegoId: juegoSeleccionado.id,
+          capacidadId: Number(capacidadId),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "Error al guardar una evidencia");
+        return;
+      }
+    }
+
     alert("Evaluación guardada correctamente.");
 
     setJuegoFinalizado(false);
     setJuegoIniciado(false);
     setJuegoSeleccionado(null);
     setEvaluaciones({});
-  };
+  } catch (error) {
+    console.error("Error al guardar evaluación:", error);
+    alert("Error al conectar con el servidor");
+  }
+};
 
   const finalizarSesion = () => {
     setSesionActiva(false);

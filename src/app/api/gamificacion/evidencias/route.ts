@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
+const PUNTOS_POR_ESTRELLA = 15;
+const PUNTAJE_MAXIMO_AVATAR = 2000;
+
 function calcularNivelCapacidad(puntos: number) {
   if (puntos >= 121) return "DESTACADO";
   if (puntos >= 81) return "LOGRADO";
@@ -9,10 +12,13 @@ function calcularNivelCapacidad(puntos: number) {
 }
 
 function calcularNivelAvatar(puntos: number) {
-  if (puntos >= 1601) return 5;
-  if (puntos >= 1201) return 4;
-  if (puntos >= 801) return 3;
-  if (puntos >= 401) return 2;
+  const puntosLimitados = Math.min(puntos, PUNTAJE_MAXIMO_AVATAR);
+
+  if (puntosLimitados >= 1701) return 6;
+  if (puntosLimitados >= 1351) return 5;
+  if (puntosLimitados >= 1001) return 4;
+  if (puntosLimitados >= 651) return 3;
+  if (puntosLimitados >= 301) return 2;
   return 1;
 }
 
@@ -27,7 +33,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const puntos = 10;
+    const puntos = PUNTOS_POR_ESTRELLA;
 
     await (prisma as any).evidenciaCapacidad.create({
       data: {
@@ -76,9 +82,14 @@ export async function POST(request: Request) {
       },
     });
 
-    const puntosTotales = progresos.reduce(
+    const puntosTotalesCalculados = progresos.reduce(
       (total: number, item: any) => total + item.puntos,
       0
+    );
+
+    const puntosTotales = Math.min(
+      puntosTotalesCalculados,
+      PUNTAJE_MAXIMO_AVATAR
     );
 
     const nuevoNivelAvatar = calcularNivelAvatar(puntosTotales);
@@ -100,6 +111,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       message: "Evidencia registrada correctamente",
+      puntosGanados: puntos,
       puntosCapacidad: nuevosPuntosCapacidad,
       nivelCapacidad: nuevoNivelCapacidad,
       puntosTotales,
