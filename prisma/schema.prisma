@@ -63,6 +63,8 @@ model Estudiante {
   aula      Aula @relation(fields: [aulaId], references: [id])
   perfil    PerfilGamificado?
   puntajes  Puntaje[]
+  progresosCapacidad ProgresoCapacidad[]
+  evidenciasCapacidad EvidenciaCapacidad[]
 }
 
 model PerfilGamificado {
@@ -84,6 +86,70 @@ model Puntaje {
   createdAt    DateTime @default(now())
 
   estudiante   Estudiante @relation(fields: [estudianteId], references: [id])
+}
+
+model Capacidad {
+  id          Int      @id @default(autoincrement())
+  codigo      String   @unique
+  nombre      String
+  area        String
+  color       String
+  descripcion String?
+  createdAt   DateTime @default(now())
+
+  juegos      JuegoCapacidad[]
+  progresos   ProgresoCapacidad[]
+  evidencias  EvidenciaCapacidad[]
+}
+
+model Juego {
+  id          Int      @id @default(autoincrement())
+  nombre      String   @unique
+  grado       String
+  descripcion String?
+  createdAt   DateTime @default(now())
+
+  capacidades JuegoCapacidad[]
+  evidencias   EvidenciaCapacidad[]
+}
+
+model JuegoCapacidad {
+  id          Int @id @default(autoincrement())
+  juegoId     Int
+  capacidadId Int
+
+  juego       Juego     @relation(fields: [juegoId], references: [id])
+  capacidad   Capacidad @relation(fields: [capacidadId], references: [id])
+
+  @@unique([juegoId, capacidadId])
+}
+
+model ProgresoCapacidad {
+  id           Int      @id @default(autoincrement())
+  estudianteId Int
+  capacidadId  Int
+  puntos        Int      @default(0)
+  nivel         String   @default("EN_INICIO")
+  updatedAt     DateTime @updatedAt
+  createdAt     DateTime @default(now())
+
+  estudiante    Estudiante @relation(fields: [estudianteId], references: [id])
+  capacidad     Capacidad  @relation(fields: [capacidadId], references: [id])
+
+  @@unique([estudianteId, capacidadId])
+}
+
+model EvidenciaCapacidad {
+  id           Int      @id @default(autoincrement())
+  estudianteId Int
+  capacidadId  Int
+  juegoId       Int
+  puntos        Int      @default(10)
+  createdAt     DateTime @default(now())
+
+  estudiante    Estudiante @relation(fields: [estudianteId], references: [id])
+  capacidad     Capacidad  @relation(fields: [capacidadId], references: [id])
+  juego         Juego      @relation(fields: [juegoId], references: [id])
 }
 
 enum Rol {
