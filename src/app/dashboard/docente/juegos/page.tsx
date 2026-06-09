@@ -59,6 +59,30 @@ export default function DocenteJuegosPage() {
   );
 
   const [loadingJuegos, setLoadingJuegos] = useState(false);
+  const obtenerImagenJuego = (nombre: string) => {
+    const imagenes: Record<string, string> = {
+      "Colores Mágicos": "/juegos/JUEGO1.webp",
+      "Sonidos de Animales": "/juegos/JUEGO2.webp",
+      "Formas Divertidas": "/juegos/JUEGO3.webp",
+      "¿Dónde está el Osito?": "/juegos/JUEGO4.webp",
+      "Caritas Felices": "/juegos/JUEGO5.webp",
+      "Clasifica y Agrupa": "/juegos/JUEGO6.webp",
+      "Las Vocales Perdidas": "/juegos/JUEGO7.webp",
+      "Cuenta Conmigo": "/juegos/JUEGO8.webp",
+      "Memoria Visual": "/juegos/JUEGO9.webp",
+      "Figuras y Posiciones": "/juegos/JUEGO10.webp",
+      "Rutinas Diarias": "/juegos/JUEGO11.webp",
+      "Trabajemos Juntos": "/juegos/JUEGO12.webp",
+      "Construye Palabras": "/juegos/JUEGO13.webp",
+      "Secuencias Divertidas": "/juegos/JUEGO14.webp",
+      "Asociación Imagen-Palabra": "/juegos/JUEGO15.webp",
+      "Rompecabezas Inteligente": "/juegos/JUEGO16.webp",
+      "Emociones en Acción": "/juegos/JUEGO17.webp",
+      "Pequeños Retos": "/juegos/JUEGO18.webp",
+    };
+
+    return imagenes[nombre] || "/juegos/JUEGO1.webp";
+  };
 
   const fechaActual = new Date().toLocaleDateString("es-PE");
   const nombreSesion = "Sesión 1";
@@ -208,7 +232,7 @@ const guardarEvaluacion = async () => {
 
     setJuegoFinalizado(false);
     setJuegoIniciado(false);
-    setJuegoSeleccionado(null);
+  
     setEvaluaciones({});
   } catch (error) {
     console.error("Error al guardar evaluación:", error);
@@ -297,100 +321,129 @@ const guardarEvaluacion = async () => {
           </div>
         )}
 
-        {aulaSeleccionada && !juegoIniciado && !juegoFinalizado && (
-          <div className="mx-auto max-w-xl rounded-[2rem] bg-gradient-to-br from-purple-100 via-pink-100 to-yellow-100 p-8 shadow-xl">
-            <div className="mb-6 text-center">
-              <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-white text-6xl shadow-md">
-                🏫
+          {aulaSeleccionada && !juegoIniciado && !juegoFinalizado && (
+            <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 lg:grid-cols-2">
+              <div className="rounded-[2rem] bg-gradient-to-br from-purple-100 via-pink-100 to-yellow-100 p-8 shadow-xl">
+                <div className="mb-6 text-center">
+                  <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-white text-6xl shadow-md">
+                    🏫
+                  </div>
+
+                  <h2 className="text-3xl font-extrabold text-purple-700">
+                    {aulaSeleccionada.nombre}
+                  </h2>
+
+                  <p className="mt-2 font-semibold text-slate-600">
+                    Crea una sesión para iniciar los juegos del aula.
+                  </p>
+                </div>
+
+                <div className="rounded-2xl bg-white/80 p-6 shadow-md">
+                  <p className="mb-3 text-slate-700">
+                    📌 <strong>Nombre de sesión:</strong> {nombreSesion}
+                  </p>
+
+                  <p className="mb-3 text-slate-700">
+                    📅 <strong>Fecha:</strong> {fechaActual}
+                  </p>
+
+                  <p className="text-slate-700">
+                    🏫 <strong>Aula:</strong> {aulaSeleccionada.nombre}
+                  </p>
+                </div>
+
+                <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  <button
+                    onClick={cambiarAula}
+                    className="rounded-2xl bg-white px-6 py-4 font-bold text-purple-700 shadow-md transition hover:scale-105"
+                  >
+                    ← Cambiar aula
+                  </button>
+
+                  <button
+                    onClick={iniciarJuego}
+                    disabled={!juegoSeleccionado}
+                    className="rounded-2xl bg-green-400 px-6 py-4 font-bold text-green-950 shadow-md transition hover:scale-105 disabled:opacity-50"
+                  >
+                    ▶ Iniciar juego
+                  </button>
+
+                  <button
+                    onClick={finalizarSesion}
+                    className="rounded-2xl bg-red-500 px-6 py-4 font-bold text-white shadow-md transition hover:scale-105"
+                  >
+                    🔒 Finalizar sesión
+                  </button>
+                </div>
               </div>
 
-              <h2 className="text-3xl font-extrabold text-purple-700">
-                {aulaSeleccionada.nombre}
-              </h2>
+              <div className="rounded-[2rem] bg-white/90 p-8 shadow-xl">
+                <h3 className="mb-4 text-2xl font-extrabold text-purple-700">
+                  Juegos disponibles
+                </h3>
 
-              <p className="mt-2 font-semibold text-slate-600">
-                Crea una sesión para iniciar los juegos del aula.
-              </p>
-            </div>
+                {loadingJuegos ? (
+                  <p>Cargando juegos...</p>
+                ) : juegos.length === 0 ? (
+                  <p className="font-semibold text-slate-600">
+                    No hay juegos registrados para este grado.
+                  </p>
+                ) : (
+                  <div>
+                    <select
+                      value={juegoSeleccionado?.id || ""}
+                      onChange={(e) => {
+                        const juego = juegos.find(
+                          (j) => j.id === Number(e.target.value)
+                        );
 
-            <div className="rounded-2xl bg-white/80 p-6 shadow-md">
-              <p className="mb-3 text-slate-700">
-                📌 <strong>Nombre de sesión:</strong> {nombreSesion}
-              </p>
-
-              <p className="mb-3 text-slate-700">
-                📅 <strong>Fecha:</strong> {fechaActual}
-              </p>
-
-              <p className="text-slate-700">
-                🏫 <strong>Aula:</strong> {aulaSeleccionada.nombre}
-              </p>
-            </div>
-
-            <div className="mt-6 rounded-2xl bg-white/80 p-6 shadow-md">
-              <h3 className="mb-4 text-xl font-extrabold text-purple-700">
-                Juegos disponibles
-              </h3>
-
-              {loadingJuegos ? (
-                <p>Cargando juegos...</p>
-              ) : juegos.length === 0 ? (
-                <p className="font-semibold text-slate-600">
-                  No hay juegos registrados para este grado.
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {juegos.map((juego) => (
-                    <button
-                      key={juego.id}
-                      onClick={() => setJuegoSeleccionado(juego)}
-                      className={`w-full rounded-2xl border p-4 text-left transition ${
-                        juegoSeleccionado?.id === juego.id
-                          ? "border-green-500 bg-green-100"
-                          : "border-purple-200 bg-white"
-                      }`}
+                        setJuegoSeleccionado(juego || null);
+                      }}
+                      className="w-full rounded-2xl border border-purple-200 bg-white p-4 font-bold text-purple-700 shadow-sm outline-none"
                     >
-                      <div className="font-bold text-purple-700">
-                        {juego.nombre}
+                      <option value="">Selecciona un juego</option>
+
+                      {juegos.map((juego) => (
+                        <option key={juego.id} value={juego.id}>
+                          {juego.nombre}
+                        </option>
+                      ))}
+                    </select>
+
+                    {juegoSeleccionado && (
+                      <div className="mt-5 rounded-2xl border border-purple-200 bg-purple-50 p-5 shadow-sm">
+                        <h4 className="text-xl font-extrabold text-purple-700">
+                          {juegoSeleccionado.nombre}
+                        </h4>
+
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {juegoSeleccionado.capacidades.map((c) => (
+                            <span
+                              key={c.capacidad.id}
+                              className="rounded-full px-3 py-1 text-xs font-bold text-white"
+                              style={{
+                                backgroundColor: c.capacidad.color,
+                              }}
+                            >
+                              {c.capacidad.nombre}
+                            </span>
+                          ))}
+                        </div>
+
+                     <div className="mt-5 flex h-64 items-center justify-center overflow-hidden rounded-2xl border-4 border-dashed border-purple-300 bg-white p-2">
+                        <img
+                          src={obtenerImagenJuego(juegoSeleccionado.nombre)}
+                          alt={juegoSeleccionado.nombre}
+                          className="max-h-full max-w-full rounded-xl object-contain"
+                        />
                       </div>
-
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {juego.capacidades.map((c) => (
-                          <span
-                            key={c.capacidad.id}
-                            className="rounded-full px-3 py-1 text-xs font-bold text-white"
-                            style={{
-                              backgroundColor: c.capacidad.color,
-                            }}
-                          >
-                            {c.capacidad.nombre}
-                          </span>
-                        ))}
                       </div>
-                    </button>
-                  ))}
-                </div>
-              )}
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
-
-            <div className="mt-7 flex gap-4">
-              <button
-                onClick={cambiarAula}
-                className="flex-1 rounded-2xl bg-white px-6 py-4 font-bold text-purple-700 shadow-md transition hover:scale-105"
-              >
-                ← Cambiar aula
-              </button>
-
-              <button
-                onClick={iniciarJuego}
-                disabled={!juegoSeleccionado}
-                className="flex-1 rounded-2xl bg-green-400 px-6 py-4 font-bold text-green-950 shadow-md transition hover:scale-105 disabled:opacity-50"
-              >
-                ▶ Iniciar juego
-              </button>
-            </div>
-          </div>
-        )}
+          )}
 
         {juegoIniciado && juegoSeleccionado && (
           <div className="mx-auto mt-8 max-w-xl rounded-[2rem] bg-white p-8 shadow-xl">
@@ -487,12 +540,6 @@ const guardarEvaluacion = async () => {
                 💾 Guardar evaluación
               </button>
 
-              <button
-                onClick={finalizarSesion}
-                className="flex-1 rounded-2xl bg-red-500 px-6 py-4 font-bold text-white shadow-md transition hover:scale-105"
-              >
-                🔒 Finalizar sesión
-              </button>
             </div>
           </div>
         )}

@@ -39,6 +39,38 @@ export default function DocenteEstudiantesPage() {
 
   const avataresDisponibles = ["🐻", "🦊", "🐰", "🐼", "🦁", "🐯", "🐨", "🐸"];
 
+  const obtenerAvatarVisual = (avatar?: string | null, nivel?: number) => {
+  if (!avatar) return "👤";
+
+  const nivelActual = nivel ?? 1;
+
+  const evoluciones: Record<string, string[]> = {
+    "🐶": ["🐶", "🐕", "🦮", "🐺", "🦊", "🦁"],
+    "🐱": ["🐱", "🐈", "🐯", "🦁", "🐆", "🐅"],
+    "🐼": ["🐼", "🐻", "🐨", "🦝", "🦊", "🦁"],
+    "🐰": ["🐰", "🐇", "🦌", "🦙", "🦄", "🦁"],
+    "🦊": ["🦊", "🐺", "🦝", "🐯", "🐆", "🦁"],
+    "🐷": ["🐷", "🐽", "🐗", "🐻", "🦬", "🦁"],
+    "🐨": ["🐨", "🐻", "🐼", "🦝", "🦊", "🦁"],
+    "🦦": ["🦦", "🐿️", "🦫", "🦝", "🐺", "🦁"],
+  };
+
+  return evoluciones[avatar]?.[nivelActual - 1] ?? avatar;
+};
+
+const calcularPorcentajeAvatar = (puntos: number) => {
+  return Math.min(Math.round((puntos / 2000) * 100), 100);
+};
+
+const calcularPuntosSiguienteNivel = (nivel: number) => {
+  if (nivel === 1) return 301;
+  if (nivel === 2) return 651;
+  if (nivel === 3) return 1001;
+  if (nivel === 4) return 1351;
+  if (nivel === 5) return 1701;
+  return 2000;
+};  
+
   const cargarAulas = async () => {
     try {
       const usuarioGuardado = localStorage.getItem("usuario");
@@ -397,37 +429,59 @@ export default function DocenteEstudiantesPage() {
                       ✕
                     </button>
                   </div>
-
+                  
                   <div className="mb-6 flex justify-center">
-                    <div className="relative flex h-32 w-32 items-center justify-center rounded-full bg-white text-7xl shadow-lg">
+                    <div className="relative flex h-36 w-36 items-center justify-center rounded-full bg-white text-8xl shadow-xl">
                       {estudianteSeleccionado.perfil?.avatar || "👤"}
 
-                      {!estudianteSeleccionado.perfil?.avatar && (
-                        <button
-                          onClick={() => setMostrarAvatares(true)}
-                          className="absolute bottom-0 right-0 rounded-full bg-yellow-300 px-3 py-2 shadow-md"
-                        >
-                          ✏️
-                        </button>
-                      )}
+                      <button
+                        onClick={() => setMostrarAvatares(true)}
+                        className="absolute bottom-0 right-0 rounded-full bg-yellow-300 px-3 py-2 shadow-md"
+                      >
+                        ✏️
+                      </button>
                     </div>
                   </div>
 
-                  <div className="space-y-3 rounded-2xl bg-white/80 p-6">
-                    <p>
+                  <div className="rounded-2xl bg-white/80 p-6 shadow-md">
+                    <p className="mb-3">
                       <strong>Nombre:</strong>{" "}
                       {estudianteSeleccionado.nombres}{" "}
                       {estudianteSeleccionado.apellidos}
                     </p>
 
-                    <p>
+                    <p className="mb-3">
                       <strong>Puntos:</strong> ⭐{" "}
-                      {estudianteSeleccionado.perfil?.puntosTotal ?? 0}
+                      {estudianteSeleccionado.perfil?.puntosTotal ?? 0} / 2000
                     </p>
 
-                    <p>
+                    <p className="mb-4">
                       <strong>Nivel:</strong> Nivel{" "}
                       {estudianteSeleccionado.perfil?.nivel ?? 1}
+                    </p>
+
+                    <div className="mb-2 h-4 w-full rounded-full bg-purple-100">
+                      <div
+                        className="h-4 rounded-full bg-purple-500 transition-all"
+                        style={{
+                          width: `${
+                            Math.min(
+                              ((estudianteSeleccionado.perfil?.puntosTotal ?? 0) / 2000) * 100,
+                              100
+                            )
+                          }%`,
+                        }}
+                      />
+                    </div>
+
+                    <p className="text-center text-sm font-bold text-purple-700">
+                      {Math.round(
+                        Math.min(
+                          ((estudianteSeleccionado.perfil?.puntosTotal ?? 0) / 2000) * 100,
+                          100
+                        )
+                      )}
+                      % de progreso total
                     </p>
                   </div>
 
