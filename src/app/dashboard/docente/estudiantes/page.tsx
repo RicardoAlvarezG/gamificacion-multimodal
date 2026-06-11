@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import CreateEstudianteModal from "@/components/forms/CreateEstudianteModal";
 import EditEstudianteModal from "@/components/forms/EditEstudianteModal";
 
@@ -37,7 +38,24 @@ export default function DocenteEstudiantesPage() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-  const avataresDisponibles = ["🐻", "🦊", "🐰", "🐼", "🦁", "🐯", "🐨", "🐸"];
+  const avataresDisponibles = [
+  "oso",
+  "zorro",
+  "conejo",
+  "panda",
+  "leon",
+  "tigre",
+  "koala",
+  "capibara",
+];
+const obtenerImagenAvatar = (
+  avatar?: string | null,
+  nivel?: number
+) => {
+  if (!avatar) return null;
+
+  return `/avatares/${avatar}/nivel${nivel || 1}.webp`;
+};
 
   const obtenerAvatarVisual = (avatar?: string | null, nivel?: number) => {
   if (!avatar) return "👤";
@@ -416,7 +434,7 @@ const calcularPuntosSiguienteNivel = (nivel: number) => {
 
             {estudianteSeleccionado && !isEditModalOpen && (
               <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-6">
-                <div className="w-full max-w-md rounded-[2rem] bg-gradient-to-br from-purple-100 via-pink-100 to-yellow-100 p-8 shadow-2xl">
+                <div className="w-full max-w-2xl rounded-[2rem] bg-gradient-to-br from-purple-100 via-pink-100 to-yellow-100 p-10 shadow-2xl">
                   <div className="mb-5 flex items-center justify-between">
                     <h3 className="text-3xl font-extrabold text-purple-700">
                       Estudiante
@@ -431,12 +449,25 @@ const calcularPuntosSiguienteNivel = (nivel: number) => {
                   </div>
                   
                   <div className="mb-6 flex justify-center">
-                    <div className="relative flex h-36 w-36 items-center justify-center rounded-full bg-white text-8xl shadow-xl">
-                      {estudianteSeleccionado.perfil?.avatar || "👤"}
+                    <div className="relative flex h-72 w-72 items-center justify-center rounded-full bg-white shadow-xl">
+
+                      {estudianteSeleccionado.perfil?.avatar &&
+                        avataresDisponibles.includes(estudianteSeleccionado.perfil.avatar) ? (
+                          <img
+                            src={obtenerImagenAvatar(
+                              estudianteSeleccionado.perfil.avatar,
+                              estudianteSeleccionado.perfil.nivel
+                            )!}
+                            alt="Avatar"
+                            className="h-726 w-72 object-contain"
+                          />
+                        ) : (
+                          <span className="text-8xl">👤</span>
+                        )}
 
                       <button
                         onClick={() => setMostrarAvatares(true)}
-                        className="absolute bottom-0 right-0 rounded-full bg-yellow-300 px-3 py-2 shadow-md"
+                        className="absolute bottom-4 right-4 z-20 rounded-full bg-yellow-300 px-4 py-3 text-xl shadow-md"
                       >
                         ✏️
                       </button>
@@ -492,13 +523,17 @@ const calcularPuntosSiguienteNivel = (nivel: number) => {
                       </h4>
 
                       <div className="grid grid-cols-4 gap-4">
-                        {avataresDisponibles.map((avatar) => (
+                       {avataresDisponibles.map((avatar) => (
                           <button
                             key={avatar}
                             onClick={() => seleccionarAvatar(avatar)}
-                            className="rounded-2xl bg-purple-100 p-4 text-4xl transition hover:scale-110"
+                            className="rounded-2xl bg-purple-100 p-2 transition hover:scale-110"
                           >
-                            {avatar}
+                            <img
+                              src={`/avatares/${avatar}/nivel1.webp`}
+                              alt={avatar}
+                              className="mx-auto h-20 w-20 object-contain"
+                            />
                           </button>
                         ))}
                       </div>
