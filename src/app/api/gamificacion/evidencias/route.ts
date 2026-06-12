@@ -5,7 +5,7 @@ const PUNTOS_POR_ESTRELLA = 15;
 const PUNTAJE_MAXIMO_AVATAR = 2000;
 
 function calcularNivelCapacidad(puntos: number) {
-  if (puntos >= 121) return "DESTACADO";
+  if (puntos >= 161) return "DESTACADO";
   if (puntos >= 81) return "LOGRADO";
   if (puntos >= 41) return "EN_PROCESO";
   return "EN_INICIO";

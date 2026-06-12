@@ -16,29 +16,38 @@ export async function GET(
       );
     }
 
-    const aula = await prisma.aula.findUnique({
-      where: {
-        id: aulaId,
+const aula = await prisma.aula.findUnique({
+  where: {
+    id: aulaId,
+  },
+  select: {
+    id: true,
+    nombre: true,
+    turno: true,
+    docenteId: true,
+    docente: {
+      select: {
+        nombre: true,
+        apellido: true,
       },
-      include: {
-        docente: {
-          select: {
-            nombre: true,
-            apellido: true,
+    },
+    estudiantes: {
+      select: {
+        id: true,
+        nombres: true,
+        apellidos: true,
+        progresosCapacidad: {
+          include: {
+            capacidad: true,
           },
         },
-        estudiantes: {
-          select: {
-            id: true,
-            nombres: true,
-            apellidos: true,
-          },
-          orderBy: {
-            apellidos: "asc",
-          },
-        },
       },
-    });
+      orderBy: {
+        apellidos: "asc",
+      },
+    },
+  },
+});
 
     if (!aula) {
       return NextResponse.json(

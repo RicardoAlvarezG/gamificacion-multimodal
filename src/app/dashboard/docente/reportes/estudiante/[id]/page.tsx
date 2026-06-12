@@ -120,7 +120,7 @@ const calcularProgresoGeneral = (cursos: CursoReporte[]) => {
   return Math.round(suma / cursos.length);
 };
 
-export default function ReporteEstudiantePage() {
+export default function ReporteEstudianteDocentePage() {
   const params = useParams();
   const estudianteId = Number(params.id);
 
@@ -138,18 +138,15 @@ export default function ReporteEstudiantePage() {
           return;
         }
 
-        const user = JSON.parse(usuarioGuardado);
-
         const res = await fetch(`/api/estudiantes/${estudianteId}`);
         const data = await res.json();
 
         if (!res.ok) {
-          alert(data.error || "Error al cargar estudiantes");
+          alert(data.error || "Error al cargar estudiante");
           return;
         }
 
-      setEstudiante(data);
-
+        setEstudiante(data);
       } catch (error) {
         console.error("Error al cargar estudiante:", error);
         alert("Error al conectar con el servidor");
@@ -161,12 +158,12 @@ export default function ReporteEstudiantePage() {
     cargarEstudiante();
   }, [estudianteId]);
 
-const cursos = construirCursosDesdeProgresos(
-  estudiante?.progresosCapacidad ?? []
-);
+  const cursos = construirCursosDesdeProgresos(
+    estudiante?.progresosCapacidad ?? []
+  );
 
-const progresoGeneral = calcularProgresoGeneral(cursos);
-const estadoGeneral = calcularEstadoPorcentaje(progresoGeneral);
+  const progresoGeneral = calcularProgresoGeneral(cursos);
+  const estadoGeneral = calcularEstadoPorcentaje(progresoGeneral);
   const nivelAvatar = estudiante?.perfil?.nivel ?? 1;
   const avatarRuta = obtenerImagenAvatar(
     estudiante?.perfil?.avatar,
@@ -189,7 +186,7 @@ const estadoGeneral = calcularEstadoPorcentaje(progresoGeneral);
         </p>
 
         <Link
-          href="/dashboard/administrador/reportes"
+          href="/dashboard/docente/reportes"
           className="mt-6 inline-block rounded-2xl bg-purple-600 px-6 py-3 font-bold text-white"
         >
           ← Volver
@@ -211,7 +208,7 @@ const estadoGeneral = calcularEstadoPorcentaje(progresoGeneral);
         </div>
 
         <Link
-          href={`/dashboard/administrador/reportes/aula/${estudiante.aula.id}`}
+          href={`/dashboard/docente/reportes/aula/${estudiante.aula.id}`}
           className="rounded-3xl bg-purple-600 px-8 py-4 text-lg font-extrabold text-white shadow-lg transition hover:bg-purple-700"
         >
           ← Regresar
@@ -271,67 +268,73 @@ const estadoGeneral = calcularEstadoPorcentaje(progresoGeneral);
           </h3>
 
           <div className="space-y-5">
-            {cursos.map((curso) => (
-              <div
-                key={curso.nombre}
-                className="rounded-3xl border border-purple-100 bg-purple-50 p-5"
-              >
-                <button
-                  onClick={() =>
-                    setCursoAbierto(
-                      cursoAbierto === curso.nombre ? null : curso.nombre
-                    )
-                  }
-                  className="w-full text-left"
-                >
-                  <div className="flex items-center justify-between">
-                    <h4 className="text-xl font-extrabold text-purple-700">
-                      {curso.nombre}
-                    </h4>
-
-                    <span className="rounded-full bg-white px-4 py-2 text-sm font-extrabold text-purple-700">
-                      {curso.estado}
-                    </span>
-                  </div>
-
-                  <div className="mt-4">
-                    <div className="mb-2 flex justify-between text-sm font-bold">
-                      <span>Avance del curso</span>
-                      <span>{curso.porcentaje}%</span>
-                    </div>
-
-                    <div className="h-4 overflow-hidden rounded-full bg-white">
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500"
-                        style={{ width: `${curso.porcentaje}%` }}
-                      />
-                    </div>
-                  </div>
-                </button>
-
-                {cursoAbierto === curso.nombre && (
-                  <div className="mt-5 space-y-4 rounded-3xl bg-white p-5">
-                    {curso.capacidades.map((capacidad) => (
-                      <div key={capacidad.nombre}>
-                        <div className="mb-2 flex justify-between font-bold text-slate-700">
-                          <span>{capacidad.nombre}</span>
-                          <span>
-                            {capacidad.porcentaje}% - {capacidad.estado}
-                          </span>
-                        </div>
-
-                        <div className="h-3 overflow-hidden rounded-full bg-purple-100">
-                          <div
-                            className="h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500"
-                            style={{ width: `${capacidad.porcentaje}%` }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+            {cursos.length === 0 ? (
+              <div className="rounded-3xl bg-purple-50 p-6 text-lg font-bold text-slate-500">
+                Aún no hay evidencias registradas para este estudiante.
               </div>
-            ))}
+            ) : (
+              cursos.map((curso) => (
+                <div
+                  key={curso.nombre}
+                  className="rounded-3xl border border-purple-100 bg-purple-50 p-5"
+                >
+                  <button
+                    onClick={() =>
+                      setCursoAbierto(
+                        cursoAbierto === curso.nombre ? null : curso.nombre
+                      )
+                    }
+                    className="w-full text-left"
+                  >
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xl font-extrabold text-purple-700">
+                        {curso.nombre}
+                      </h4>
+
+                      <span className="rounded-full bg-white px-4 py-2 text-sm font-extrabold text-purple-700">
+                        {curso.estado}
+                      </span>
+                    </div>
+
+                    <div className="mt-4">
+                      <div className="mb-2 flex justify-between text-sm font-bold">
+                        <span>Avance del curso</span>
+                        <span>{curso.porcentaje}%</span>
+                      </div>
+
+                      <div className="h-4 overflow-hidden rounded-full bg-white">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500"
+                          style={{ width: `${curso.porcentaje}%` }}
+                        />
+                      </div>
+                    </div>
+                  </button>
+
+                  {cursoAbierto === curso.nombre && (
+                    <div className="mt-5 space-y-4 rounded-3xl bg-white p-5">
+                      {curso.capacidades.map((capacidad) => (
+                        <div key={capacidad.nombre}>
+                          <div className="mb-2 flex justify-between font-bold text-slate-700">
+                            <span>{capacidad.nombre}</span>
+                            <span>
+                              {capacidad.porcentaje}% - {capacidad.estado}
+                            </span>
+                          </div>
+
+                          <div className="h-3 overflow-hidden rounded-full bg-purple-100">
+                            <div
+                              className="h-full rounded-full bg-gradient-to-r from-purple-500 to-pink-500"
+                              style={{ width: `${capacidad.porcentaje}%` }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

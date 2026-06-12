@@ -50,7 +50,7 @@ const calcularPorcentajeEstudiante = (estudiante: Estudiante) => {
   return Math.round(sumaPorcentajes / progresos.length);
 };
 
-export default function ReporteAulaPage() {
+export default function ReporteAulaDocentePage() {
   const params = useParams();
   const id = params.id as string;
 
@@ -91,9 +91,12 @@ export default function ReporteAulaPage() {
   if (!aula) {
     return (
       <div className="mx-10 mt-8 rounded-[3rem] bg-white/90 p-12 shadow-2xl">
-        <p className="text-xl font-bold text-red-500">No se encontró el aula.</p>
+        <p className="text-xl font-bold text-red-500">
+          No se encontró el aula.
+        </p>
+
         <Link
-          href="/dashboard/administrador/reportes"
+          href="/dashboard/docente/reportes"
           className="mt-6 inline-block rounded-2xl bg-purple-600 px-6 py-3 font-bold text-white"
         >
           ← Volver
@@ -104,21 +107,21 @@ export default function ReporteAulaPage() {
 
   const nombreDocente = aula.docente
     ? `${aula.docente.nombre} ${aula.docente.apellido ?? ""}`
-    : "Docente en espera";
+    : "Docente";
 
-    const porcentajesEstudiantes = aula.estudiantes.map((estudiante) =>
-  calcularPorcentajeEstudiante(estudiante)
-);
+  const porcentajesEstudiantes = aula.estudiantes.map((estudiante) =>
+    calcularPorcentajeEstudiante(estudiante)
+  );
 
-const porcentajeAula =
-  porcentajesEstudiantes.length > 0
-    ? Math.round(
-        porcentajesEstudiantes.reduce((total, valor) => total + valor, 0) /
-          porcentajesEstudiantes.length
-      )
-    : 0;
+  const porcentajeAula =
+    porcentajesEstudiantes.length > 0
+      ? Math.round(
+          porcentajesEstudiantes.reduce((total, valor) => total + valor, 0) /
+            porcentajesEstudiantes.length
+        )
+      : 0;
 
-const estadoAula = calcularEstadoPorcentaje(porcentajeAula);
+  const estadoAula = calcularEstadoPorcentaje(porcentajeAula);
 
   return (
     <div className="mx-10 mt-8 min-h-[82vh] rounded-[3rem] border border-white/70 bg-white/90 p-12 shadow-2xl">
@@ -149,16 +152,14 @@ const estadoAula = calcularEstadoPorcentaje(porcentajeAula);
               />
             </div>
 
-            <p className="mt-3 font-extrabold text-purple-700"> 
+            <p className="mt-3 font-extrabold text-purple-700">
               Estado: {estadoAula}
             </p>
           </div>
-
-
         </div>
 
         <Link
-          href={`/dashboard/administrador/reportes/docente/${aula?.docenteId}`}
+          href="/dashboard/docente/reportes"
           className="rounded-3xl bg-purple-600 px-8 py-4 text-lg font-extrabold text-white shadow-lg transition hover:bg-purple-700"
         >
           ← Regresar
@@ -178,7 +179,7 @@ const estadoAula = calcularEstadoPorcentaje(porcentajeAula);
             Aún no hay estudiantes registrados en esta aula.
           </div>
         ) : (
-          aula.estudiantes.map((estudiante, index) => {
+          aula.estudiantes.map((estudiante) => {
             const porcentaje = calcularPorcentajeEstudiante(estudiante);
             const estado = calcularEstadoPorcentaje(porcentaje);
 
@@ -211,7 +212,7 @@ const estadoAula = calcularEstadoPorcentaje(porcentajeAula);
 
                 <div className="text-center">
                   <Link
-                    href={`/dashboard/administrador/reportes/estudiante/${estudiante.id}`}
+                    href={`/dashboard/docente/reportes/estudiante/${estudiante.id}`}
                     className="rounded-2xl bg-purple-100 px-6 py-3 font-extrabold text-purple-700 hover:bg-purple-200"
                   >
                     Ver Reporte →

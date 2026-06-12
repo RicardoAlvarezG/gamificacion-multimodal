@@ -7,7 +7,11 @@ export async function GET() {
       include: {
         docente: true,
         institucion: true,
-        estudiantes: true,
+        estudiantes: {
+          include: {
+            progresosCapacidad: true,
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",
