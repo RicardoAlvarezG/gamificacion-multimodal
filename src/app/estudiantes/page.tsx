@@ -27,7 +27,16 @@ export default function EstudiantesPage() {
 
         <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
           {estudiantesMock.map((estudiante) => (
-            <StudentCard key={estudiante.id} {...estudiante} />
+            <StudentCard
+              key={estudiante.id}
+              estudianteId={estudiante.id}
+              nombres={estudiante.nombres}
+              apellidos={estudiante.apellidos}
+              aula={estudiante.aula}
+              avatar={estudiante.avatar}
+              puntos={estudiante.puntos}
+              nivel={estudiante.nivel}
+            />
           ))}
         </div>
       </section>
