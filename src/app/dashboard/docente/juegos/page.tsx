@@ -2,6 +2,14 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import ColoresMagicos from "@/components/juegos/ColoresMagicos";
+import SonidosAnimales from "@/components/juegos/SonidosAnimales";
+import FormasDivertidas from "@/components/juegos/FormasDivertidas";
+import DondeEstaOsito from "@/components/juegos/DondeEstaOsito";
+import CaritasFelices from "@/components/juegos/CaritasFelices";
+import ClasificaAgrupa from "@/components/juegos/ClasificaAgrupa";
+import LasVocalesPerdidas from "@/components/juegos/LasVocalesPerdidas";
+import CuentaConmigo from "@/components/juegos/CuentaConmigo";
 
 type Aula = {
   id: number;
@@ -445,27 +453,87 @@ const guardarEvaluacion = async () => {
             </div>
           )}
 
-        {juegoIniciado && juegoSeleccionado && (
-          <div className="mx-auto mt-8 max-w-xl rounded-[2rem] bg-white p-8 shadow-xl">
-            <h2 className="mb-4 text-3xl font-extrabold text-purple-700">
-              🎮 {juegoSeleccionado.nombre}
-            </h2>
+          {juegoIniciado && juegoSeleccionado && (
+            <>
+              {juegoSeleccionado.nombre === "Colores Mágicos" ? (
+                <ColoresMagicos
+                  onFinalizar={() => {
+                    setJuegoIniciado(false);
+                    setJuegoFinalizado(true);
+                  }}
+                />
+              ) : juegoSeleccionado.nombre === "Sonidos de Animales" ? (
+                  <SonidosAnimales
+                    onFinalizar={() => {
+                      setJuegoIniciado(false);
+                      setJuegoFinalizado(true);
+                    }}
+                  />
+                ) : juegoSeleccionado.nombre === "Formas Divertidas" ? (
+                  <FormasDivertidas
+                    onFinalizar={() => {
+                      setJuegoIniciado(false);
+                      setJuegoFinalizado(true);
+                    }}
+                  />
+                ) : juegoSeleccionado.nombre === "¿Dónde está el Osito?" ? (
+                  <DondeEstaOsito
+                    onFinalizar={() => {
+                      setJuegoIniciado(false);
+                      setJuegoFinalizado(true);
+                    }}
+                  />
+                ) : juegoSeleccionado.nombre === "Caritas Felices" ? (
+                  <CaritasFelices
+                    onFinalizar={() => {
+                      setJuegoIniciado(false);
+                      setJuegoFinalizado(true);
+                    }}
+                  />
+                ) : juegoSeleccionado.nombre === "Clasifica y Agrupa" ? (
+                  <ClasificaAgrupa
+                    onFinalizar={() => {
+                      setJuegoIniciado(false);
+                      setJuegoFinalizado(true);
+                    }}
+                  />
+                ) : juegoSeleccionado.nombre === "Las Vocales Perdidas" ? (
+                  <LasVocalesPerdidas
+                    onFinalizar={() => {
+                      setJuegoIniciado(false);
+                      setJuegoFinalizado(true);
+                    }}
+                  />
+                ) : juegoSeleccionado.nombre === "Cuenta Conmigo" ? (
+                  <CuentaConmigo
+                    onFinalizar={() => {
+                      setJuegoIniciado(false);
+                      setJuegoFinalizado(true);
+                    }}
+                  />
+                ): (
+                <div className="mx-auto mt-8 max-w-xl rounded-[2rem] bg-white p-8 shadow-xl">
+                  <h2 className="mb-4 text-3xl font-extrabold text-purple-700">
+                    🎮 {juegoSeleccionado.nombre}
+                  </h2>
 
-            <p className="mb-6 text-slate-600">
-              Juego en ejecución...
-            </p>
+                  <p className="mb-6 text-slate-600">
+                    Juego en ejecución...
+                  </p>
 
-            <button
-              onClick={() => {
-                setJuegoIniciado(false);
-                setJuegoFinalizado(true);
-              }}
-              className="rounded-2xl bg-red-500 px-6 py-4 font-bold text-white shadow-md transition hover:scale-105"
-            >
-              ⏹ Finalizar Juego
-            </button>
-          </div>
-        )}
+                  <button
+                    onClick={() => {
+                      setJuegoIniciado(false);
+                      setJuegoFinalizado(true);
+                    }}
+                    className="rounded-2xl bg-red-500 px-6 py-4 font-bold text-white shadow-md transition hover:scale-105"
+                  >
+                    ⬛ Finalizar Juego
+                  </button>
+                </div>
+              )}
+            </>
+          )}
 
         {juegoFinalizado && juegoSeleccionado && (
           <div className="mt-8 rounded-[2rem] bg-white p-8 shadow-xl">
