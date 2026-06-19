@@ -10,6 +10,16 @@ import CaritasFelices from "@/components/juegos/CaritasFelices";
 import ClasificaAgrupa from "@/components/juegos/ClasificaAgrupa";
 import LasVocalesPerdidas from "@/components/juegos/LasVocalesPerdidas";
 import CuentaConmigo from "@/components/juegos/CuentaConmigo";
+import MemoriaVisual from "@/components/juegos/MemoriaVisual";
+import FigurasPosiciones from "@/components/juegos/FigurasPosiciones";
+import RutinasDiarias from "@/components/juegos/RutinasDiarias";
+import TrabajemosJuntos from "@/components/juegos/TrabajemosJuntos";
+import ConstruyePalabras from "@/components/juegos/ConstruyePalabras";
+import SecuenciasDivertidas from "@/components/juegos/SecuenciasDivertidas";
+import AsociacionImagenPalabra from "@/components/juegos/AsociacionImagenPalabra";
+import RompecabezasInteligente from "@/components/juegos/RompecabezasInteligente";
+import EmocionesAccion from "@/components/juegos/EmocionesAccion";
+import ElIntruso from "@/components/juegos/ElIntruso";
 
 type Aula = {
   id: number;
@@ -511,7 +521,77 @@ const guardarEvaluacion = async () => {
                       setJuegoFinalizado(true);
                     }}
                   />
-                ): (
+                ): juegoSeleccionado.nombre === "Memoria Visual" ? (
+                  <MemoriaVisual
+                    onFinalizar={() => {
+                      setJuegoIniciado(false);
+                      setJuegoFinalizado(true);
+                    }}
+                  />
+                )  : juegoSeleccionado.nombre === "Figuras y Posiciones" ? (
+                  <FigurasPosiciones
+                    onFinalizar={() => {
+                      setJuegoIniciado(false);
+                      setJuegoFinalizado(true);
+                    }}
+                  />
+                )  : juegoSeleccionado.nombre === "Rutinas Diarias" ? (
+                  <RutinasDiarias
+                    onFinalizar={() => {
+                      setJuegoIniciado(false);
+                      setJuegoFinalizado(true);
+                    }}
+                  />
+                  ) : juegoSeleccionado.nombre === "Trabajemos Juntos" ? (
+                  <TrabajemosJuntos
+                    onFinalizar={() => {
+                      setJuegoIniciado(false);
+                      setJuegoFinalizado(true);
+                    }}
+                  /> 
+                  ) : juegoSeleccionado.nombre === "Construye Palabras" ? (
+                  <ConstruyePalabras
+                    onFinalizar={() => {
+                      setJuegoIniciado(false);
+                      setJuegoFinalizado(true);
+                    }}
+                  />
+                  ): juegoSeleccionado.nombre === "Secuencias Divertidas" ? (
+                  <SecuenciasDivertidas
+                    onFinalizar={() => {
+                      setJuegoIniciado(false);
+                      setJuegoFinalizado(true);
+                    }}
+                  />
+                ): juegoSeleccionado.nombre === "Asociación Imagen-Palabra" ? (
+                  <AsociacionImagenPalabra
+                    onFinalizar={() => {
+                      setJuegoIniciado(false);
+                      setJuegoFinalizado(true);
+                    }}
+                  />
+                ) : juegoSeleccionado.nombre === "Rompecabezas Inteligente" ? (
+                  <RompecabezasInteligente
+                    onFinalizar={() => {
+                      setJuegoIniciado(false);
+                      setJuegoFinalizado(true);
+                    }}
+                  />
+                ) : juegoSeleccionado.nombre === "Emociones en Acción" ? (
+                  <EmocionesAccion
+                    onFinalizar={() => {
+                      setJuegoIniciado(false);
+                      setJuegoFinalizado(true);
+                    }}
+                  />
+                  ) : juegoSeleccionado.nombre === "Pequeños Retos" ? (
+                    <ElIntruso
+                      onFinalizar={() => {
+                        setJuegoIniciado(false);
+                        setJuegoFinalizado(true);
+                      }}
+                    />
+                  ):(
                 <div className="mx-auto mt-8 max-w-xl rounded-[2rem] bg-white p-8 shadow-xl">
                   <h2 className="mb-4 text-3xl font-extrabold text-purple-700">
                     🎮 {juegoSeleccionado.nombre}
