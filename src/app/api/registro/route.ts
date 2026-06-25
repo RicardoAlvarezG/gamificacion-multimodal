@@ -2,6 +2,16 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "../../../lib/prisma";
 
+function validarPassword(password: string) {
+  const longitud = password.length >= 8 && password.length <= 15;
+  const mayuscula = /[A-Z]/.test(password);
+  const minuscula = /[a-z]/.test(password);
+  const numero = /\d/.test(password);
+  const simbolo = /[!@#$%^&*(),.?":{}|<>_\-+=/\\[\];'`~]/.test(password);
+
+  return longitud && mayuscula && minuscula && numero && simbolo;
+}
+
 function generarCodigoInstitucional() {
   const letras = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const numeros = "0123456789";
@@ -39,6 +49,16 @@ export async function POST(req: Request) {
         { status: 400 }
       );
     }
+
+    if (!validarPassword(password)) {
+  return NextResponse.json(
+    {
+      error:
+        "La contraseña debe tener entre 8 y 15 caracteres, incluir una mayúscula, una minúscula, un número y un símbolo.",
+    },
+    { status: 400 }
+  );
+}
 
     const usuarioExiste = await prisma.usuario.findFirst({
       where: {

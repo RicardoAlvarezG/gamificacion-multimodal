@@ -218,20 +218,20 @@ const estadoGeneral = calcularEstadoPorcentaje(progresoGeneral);
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 gap-8 xl:grid-cols-[360px_1fr]">
+      <div className="grid grid-cols-1 gap-8 xl:grid-cols-[430px_1fr]">
         <div className="rounded-[2rem] bg-gradient-to-br from-purple-100 via-pink-100 to-yellow-100 p-8 shadow-xl">
           <div className="flex flex-col items-center text-center">
-            <div className="mb-4 flex h-40 w-40 items-center justify-center overflow-hidden rounded-full bg-white text-7xl shadow-xl">
-              {avatarRuta ? (
-                <img
-                  src={avatarRuta}
-                  alt="Avatar"
-                  className="h-full w-full object-cover scale-125"
-                />
-              ) : (
-                <span>👤</span>
-              )}
-            </div>
+            <div className="mb-5 flex h-64 w-64 items-center justify-center rounded-[2rem] bg-white p-4 text-7xl shadow-xl">
+                {avatarRuta ? (
+                  <img
+                    src={avatarRuta}
+                    alt="Avatar"
+                    className="h-full w-full object-contain"
+                  />
+                ) : (
+                  <span>👤</span>
+                )}
+              </div>
 
             <h2 className="text-2xl font-extrabold text-purple-700">
               {estudiante.nombres} {estudiante.apellidos}

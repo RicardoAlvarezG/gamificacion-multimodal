@@ -30,8 +30,30 @@ export default function CrearCuentaPage() {
           [e.target.name]: e.target.value,
         });
       };
+      const validarPassword = (password: string) => {
+        return {
+          longitud: password.length >= 8 && password.length <= 15,
+          mayuscula: /[A-Z]/.test(password),
+          minuscula: /[a-z]/.test(password),
+          numero: /\d/.test(password),
+          simbolo: /[!@#$%^&*(),.?":{}|<>_\-+=/\\[\];'`~]/.test(password),
+        };
+      };
+
+      const reglasPassword = validarPassword(formData.password);
+
+      const passwordValida =
+        reglasPassword.longitud &&
+        reglasPassword.mayuscula &&
+        reglasPassword.minuscula &&
+        reglasPassword.numero &&
+        reglasPassword.simbolo;
         const handleSubmit = async (e: React.FormEvent) => {
           e.preventDefault();
+          if (!passwordValida) {
+              alert("La contraseña no cumple con los requisitos de seguridad.");
+              return;
+            }
 
           if (formData.password !== formData.confirmarPassword) {
             alert("Las contraseñas no coinciden");
@@ -236,13 +258,19 @@ export default function CrearCuentaPage() {
             </label>
             <div className="relative mt-1">
              <input
-                  type={mostrarPassword ? "text" : "password"}
-                  name="password"
-                  placeholder="Tu contraseña"
-                  value={formData.password}
-                  onChange={handleChange}
-                  className={inputClass}
-                />
+                type={mostrarPassword ? "text" : "password"}
+                name="password"
+                placeholder="Tu contraseña"
+                value={formData.password}
+                onChange={handleChange}
+                className={`w-full mt-1 px-5 py-3 bg-white border-2 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none transition ${
+                  formData.password.length === 0
+                    ? "border-blue-200 focus:ring-2 focus:ring-yellow-400 focus:border-blue-400"
+                    : passwordValida
+                    ? "border-green-500 focus:ring-2 focus:ring-green-300"
+                    : "border-red-500 focus:ring-2 focus:ring-red-300"
+                }`}
+              />
               <button
                 type="button"
                 onClick={() => setMostrarPassword(!mostrarPassword)}
@@ -252,6 +280,28 @@ export default function CrearCuentaPage() {
               </button>
             </div>
           </div>
+
+            <div className="mt-3 space-y-1 text-sm">
+              <p className={reglasPassword.longitud ? "text-green-600" : "text-red-500"}>
+                {reglasPassword.longitud ? "✅" : "❌"} Entre 8 y 15 caracteres
+              </p>
+
+              <p className={reglasPassword.mayuscula ? "text-green-600" : "text-red-500"}>
+                {reglasPassword.mayuscula ? "✅" : "❌"} Al menos una letra mayúscula
+              </p>
+
+              <p className={reglasPassword.minuscula ? "text-green-600" : "text-red-500"}>
+                {reglasPassword.minuscula ? "✅" : "❌"} Al menos una letra minúscula
+              </p>
+
+              <p className={reglasPassword.numero ? "text-green-600" : "text-red-500"}>
+                {reglasPassword.numero ? "✅" : "❌"} Al menos un número
+              </p>
+
+              <p className={reglasPassword.simbolo ? "text-green-600" : "text-red-500"}>
+                {reglasPassword.simbolo ? "✅" : "❌"} Al menos un símbolo (@, #, $, %, etc.)
+              </p>
+            </div>
 
           <div>
             <label className="block text-sm font-semibold text-blue-700">

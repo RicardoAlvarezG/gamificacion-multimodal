@@ -11,6 +11,10 @@ type Docente = {
   usuario: string;
   correo: string;
   estado: string;
+
+  _count: {
+    aulasDocente: number;
+  };
 };
 
 export default function DocentesPage() {
@@ -19,6 +23,8 @@ export default function DocentesPage() {
   );
   const [docentes, setDocentes] = useState<Docente[]>([]);
   const [loading, setLoading] = useState(true);
+  const [docenteSeleccionado, setDocenteSeleccionado] =
+  useState<Docente | null>(null);
 
   useEffect(() => {
     const cargarDocentes = async () => {
@@ -159,8 +165,9 @@ export default function DocentesPage() {
                 key={docente.id}
                 nombre={docente.nombre}
                 usuario={docente.usuario}
-                aulas={0}
+                aulas={docente._count.aulasDocente}
                 estado="Activo"
+                onDetalle={() => setDocenteSeleccionado(docente)}
               />
             ))
           )}
@@ -184,7 +191,50 @@ export default function DocentesPage() {
             ))
           )}
         </div>
+            )}
+
+      {docenteSeleccionado && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+          <div className="w-full max-w-xl rounded-[2rem] bg-white p-8 shadow-2xl">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-3xl font-black text-purple-700">
+                Datos del docente
+              </h2>
+
+              <button
+                onClick={() => setDocenteSeleccionado(null)}
+                className="rounded-full bg-purple-100 px-4 py-2 font-bold text-purple-700"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-4 text-lg">
+              <p>
+                <strong>Nombre:</strong> {docenteSeleccionado.nombre}
+              </p>
+
+              <p>
+                <strong>Usuario:</strong> {docenteSeleccionado.usuario}
+              </p>
+
+              <p>
+                <strong>Correo:</strong> {docenteSeleccionado.correo}
+              </p>
+
+              <p>
+                <strong>Estado:</strong> {docenteSeleccionado.estado}
+              </p>
+
+              <p>
+              <strong>Aulas asignadas:</strong>{" "}
+              {docenteSeleccionado._count.aulasDocente}
+              </p>
+            </div>
+          </div>
+        </div>
       )}
+
     </div>
   );
 }

@@ -12,16 +12,18 @@ export async function PATCH(req: Request) {
       );
     }
 
-    const docente = await prisma.usuario.update({
-      where: { id: Number(id) },
-      data: { estado: "activo" },
-      select: {
-        id: true,
-        nombre: true,
-        usuario: true,
-        estado: true,
-      },
-    });
+        const docente = await prisma.usuario.update({
+          where: { id: Number(id) },
+          data: { estado: "activo" },
+          select: {
+            id: true,
+            nombre: true,
+            usuario: true,
+            correo: true,
+            estado: true,
+            institucionId: true,
+          },
+        });
 
     return NextResponse.json({
       message: "Docente aprobado correctamente.",

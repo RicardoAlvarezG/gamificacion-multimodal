@@ -3,6 +3,7 @@ interface DocenteCardProps {
   usuario: string;
   aulas: number;
   estado: "Activo";
+  onDetalle?: () => void;
 }
 
 export default function DocenteCard({
@@ -10,6 +11,7 @@ export default function DocenteCard({
   usuario,
   aulas,
   estado,
+  onDetalle,
 }: DocenteCardProps) {
   return (
     <div className="rounded-[2rem] bg-white p-7 shadow-xl border border-purple-100 transition hover:-translate-y-2 hover:shadow-2xl">
@@ -30,7 +32,10 @@ export default function DocenteCard({
         <p>🏫 Aulas asignadas: {aulas}</p>
       </div>
 
-      <button className="mt-7 w-full rounded-3xl bg-purple-100 px-5 py-4 font-extrabold text-purple-700 hover:bg-purple-200">
+      <button
+        onClick={onDetalle}
+        className="mt-7 w-full rounded-3xl bg-purple-100 px-5 py-4 font-extrabold text-purple-700 hover:bg-purple-200"
+      >
         Ver detalle →
       </button>
     </div>

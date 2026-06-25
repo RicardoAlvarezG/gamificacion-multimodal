@@ -19,7 +19,7 @@ const avatares = [
   { id: "panda", icono: "🐼", nombre: "Panda" },
   { id: "zorro", icono: "🦊", nombre: "Zorro" },
   { id: "cerdito", icono: "🐷", nombre: "Cerdito" },
-  { id: "koala", icono: "🐨", nombre: "Koala" },
+  { id: "pinguino", icono: "🐧", nombre: "Pingüino" },
   { id: "nutria", icono: "🦦", nombre: "Nutria" },
   { id: "capibara", icono: "🦫", nombre: "Capibara" },
 ];

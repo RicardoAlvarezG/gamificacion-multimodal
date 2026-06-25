@@ -362,8 +362,14 @@ export default function EstudiantesPage() {
                   </div>
 
                   <div className="mb-6 flex justify-center">
-                    <div className="flex h-32 w-32 items-center justify-center rounded-full bg-white text-7xl shadow-lg">
-                      {estudianteSeleccionado.perfil?.avatar || "🧒"}
+                    <div className="flex h-32 w-32 items-center justify-center rounded-full bg-white shadow-lg">
+                      <img
+                        src={`/avatares/${estudianteSeleccionado.perfil?.avatar ?? "oso"}/nivel${
+                          estudianteSeleccionado.perfil?.nivel ?? 1
+                        }.webp`}
+                        alt="Avatar del estudiante"
+                        className="h-28 w-28 object-contain"
+                      />
                     </div>
                   </div>
 

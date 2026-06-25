@@ -36,6 +36,12 @@ const aula = await prisma.aula.findUnique({
         id: true,
         nombres: true,
         apellidos: true,
+            perfil: {
+        select: {
+          avatar: true,
+          nivel: true,
+        },
+      },
         progresosCapacidad: {
           include: {
             capacidad: true,

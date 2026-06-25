@@ -18,16 +18,19 @@ export async function GET(req: Request) {
         rol: "DOCENTE",
         institucionId: Number(institucionId),
       },
-      select: {
+              select: {
         id: true,
         nombre: true,
         usuario: true,
         correo: true,
         estado: true,
         institucionId: true,
-      },
-      orderBy: {
-        createdAt: "desc",
+
+        _count: {
+          select: {
+            aulasDocente: true,
+          },
+        },
       },
     });
 

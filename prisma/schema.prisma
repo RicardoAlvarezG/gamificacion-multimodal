@@ -26,6 +26,7 @@ model Usuario {
   institucion        Institucion? @relation(fields: [institucionId], references: [id])
   aulasDocente       Aula[]       @relation("DocenteAulas")
   aulasCreadas       Aula[]       @relation("AulasCreadas")
+  sesionesJuego      SesionJuego[]
 }
 
 model Institucion {
@@ -52,6 +53,7 @@ model Aula {
   docente       Usuario?     @relation("DocenteAulas", fields: [docenteId], references: [id])
   estudiantes   Estudiante[]
   creadoPor     Usuario?     @relation("AulasCreadas", fields: [creadoPorId], references: [id])
+  sesionesJuego SesionJuego[]
 }
 
 model Estudiante {
@@ -112,6 +114,7 @@ model Juego {
 
   capacidades JuegoCapacidad[]
   evidencias   EvidenciaCapacidad[]
+  sesionesDetalle SesionJuegoDetalle[]
 }
 
 model JuegoCapacidad {
@@ -151,6 +154,32 @@ model EvidenciaCapacidad {
   estudiante    Estudiante @relation(fields: [estudianteId], references: [id])
   capacidad     Capacidad  @relation(fields: [capacidadId], references: [id])
   juego         Juego      @relation(fields: [juegoId], references: [id])
+}
+
+model SesionJuego {
+  id        Int      @id @default(autoincrement())
+  aulaId    Int
+  docenteId Int
+  numero    Int
+  fecha     DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  aula      Aula    @relation(fields: [aulaId], references: [id])
+  docente   Usuario @relation(fields: [docenteId], references: [id])
+  detalles  SesionJuegoDetalle[]
+
+  @@unique([aulaId, numero])
+}
+
+model SesionJuegoDetalle {
+  id            Int @id @default(autoincrement())
+  sesionJuegoId Int
+  juegoId       Int
+
+  sesionJuego   SesionJuego @relation(fields: [sesionJuegoId], references: [id])
+  juego         Juego       @relation(fields: [juegoId], references: [id])
+
+  @@unique([sesionJuegoId, juegoId])
 }
 
 enum Rol {

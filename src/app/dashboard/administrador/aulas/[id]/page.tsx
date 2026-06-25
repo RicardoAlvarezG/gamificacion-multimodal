@@ -7,6 +7,11 @@ type Estudiante = {
   id: number;
   nombres: string;
   apellidos: string;
+
+  perfil?: {
+    avatar: string | null;
+    nivel: number;
+  } | null;
 };
 
 type AulaDetalle = {
@@ -103,19 +108,31 @@ export default function AulaDetallePage() {
             Aún no hay estudiantes registrados en esta aula.
           </p>
         ) : (
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
-            {aula.estudiantes.map((estudiante) => (
-              <div
-                key={estudiante.id}
-                className="rounded-3xl bg-white p-6 shadow-md border border-purple-100"
-              >
-                <div className="text-4xl">👧</div>
-                <h3 className="mt-4 text-xl font-extrabold text-slate-800">
-                  {estudiante.nombres} {estudiante.apellidos}
-                </h3>
-              </div>
-            ))}
-          </div>
+          <div className="grid grid-cols-2 gap-6 md:grid-cols-3 xl:grid-cols-5">
+  {aula.estudiantes.map((estudiante) => (
+    <div
+      key={estudiante.id}
+      className="rounded-[2rem] bg-white p-10 shadow-lg border border-purple-100 text-center"
+    >
+     <div className="flex justify-center">
+      <img
+        src={`/avatares/${estudiante.perfil?.avatar ?? "oso"}/nivel${
+          estudiante.perfil?.nivel ?? 1
+        }.webp`}
+        alt="Avatar"
+        className="h-52 w-52 object-contain"
+      />
+    </div>
+      <p className="mt-3 text-lg font-bold text-purple-700">
+        Nivel {estudiante.perfil?.nivel ?? 1}
+      </p>
+
+      <h3 className="mt-2 text-base font-extrabold text-slate-800">
+        {estudiante.nombres}
+      </h3>
+    </div>
+  ))}
+</div>
         )}
       </div>
     </div>

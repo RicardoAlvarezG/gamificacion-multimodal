@@ -102,8 +102,9 @@ export default function DocenteJuegosPage() {
     return imagenes[nombre] || "/juegos/JUEGO1.webp";
   };
 
-  const fechaActual = new Date().toLocaleDateString("es-PE");
-  const nombreSesion = "Sesión 1";
+    const fechaActual = new Date().toLocaleDateString("es-PE");
+    const [numeroSesion, setNumeroSesion] = useState(1);
+    const nombreSesion = `Sesión ${numeroSesion}`;
 
   const cargarAulas = async () => {
     try {
@@ -162,6 +163,19 @@ export default function DocenteJuegosPage() {
     } finally {
       setLoadingJuegos(false);
     }
+  };
+
+  const cargarNumeroSesion = async (aulaId: number) => {
+  try {
+    const res = await fetch(`/api/sesiones?aulaId=${aulaId}`);
+    const data = await res.json();
+
+    if (res.ok) {
+      setNumeroSesion(data.numeroSesion);
+    }
+  } catch (error) {
+    console.error("Error cargando número de sesión:", error);
+  }
   };
 
   const iniciarJuego = async () => {
@@ -258,7 +272,42 @@ const guardarEvaluacion = async () => {
   }
 };
 
-  const finalizarSesion = () => {
+const finalizarSesion = async () => {
+  if (!aulaSeleccionada) {
+    alert("No hay aula seleccionada.");
+    return;
+  }
+
+  const usuarioGuardado = localStorage.getItem("usuario");
+
+  if (!usuarioGuardado) {
+    alert("No se encontró el usuario en sesión.");
+    return;
+  }
+
+  const usuario = JSON.parse(usuarioGuardado);
+
+  try {
+    const res = await fetch("/api/sesiones", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        aulaId: aulaSeleccionada.id,
+        docenteId: usuario.id,
+        numeroSesion,
+        juegosIds: [],
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.error || "Error al finalizar la sesión.");
+      return;
+    }
+
     setSesionActiva(false);
     setJuegoFinalizado(false);
     setJuegoIniciado(false);
@@ -266,9 +315,14 @@ const guardarEvaluacion = async () => {
     setAulaSeleccionada(null);
     setEstudiantes([]);
     setEvaluaciones({});
+    setNumeroSesion(1);
 
     alert("Sesión finalizada correctamente.");
-  };
+  } catch (error) {
+    console.error("Error al finalizar sesión:", error);
+    alert("Error al conectar con el servidor.");
+  }
+};
 
   useEffect(() => {
     cargarAulas();
@@ -320,6 +374,7 @@ const guardarEvaluacion = async () => {
                   setEstudiantes([]);
                   setEvaluaciones({});
                   cargarJuegosPorGrado(aula.grado);
+                  cargarNumeroSesion(aula.id);
                 }}
                 className="rounded-[2rem] bg-purple-100 p-8 text-left shadow-xl transition hover:scale-[1.02]"
               >

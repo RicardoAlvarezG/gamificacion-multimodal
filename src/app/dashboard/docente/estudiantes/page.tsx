@@ -45,7 +45,7 @@ export default function DocenteEstudiantesPage() {
   "panda",
   "leon",
   "tigre",
-  "koala",
+  "pinguino",
   "capibara",
 ];
 const obtenerImagenAvatar = (
