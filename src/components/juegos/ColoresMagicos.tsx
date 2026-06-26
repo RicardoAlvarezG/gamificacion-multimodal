@@ -2,61 +2,72 @@
 
 import { useState } from "react";
 
-type ColoresMagicosProps = {
-  onFinalizar: () => void;
+export type ConfiguracionColoresMagicos = {
+  pregunta: string;
+  colores: string[];
+  rondas: number;
 };
 
-const rondas = [
-  "rojo",
-  "azul",
-  "amarillo",
-  "rojo",
-  "azul",
-  "amarillo",
-];
+type ColoresMagicosProps = {
+  onFinalizar: () => void;
+  configuracion?: ConfiguracionColoresMagicos;
+};
 
 const colores = [
-  {
-    nombre: "rojo",
-    clase: "bg-red-500",
-    texto: "text-red-500",
-  },
-  {
-    nombre: "azul",
-    clase: "bg-blue-500",
-    texto: "text-blue-500",
-  },
-  {
-    nombre: "amarillo",
-    clase: "bg-yellow-300",
-    texto: "text-yellow-400",
-  },
+  { nombre: "rojo", clase: "bg-red-500", texto: "text-red-500" },
+  { nombre: "azul", clase: "bg-blue-500", texto: "text-blue-500" },
+  { nombre: "amarillo", clase: "bg-yellow-300", texto: "text-yellow-400" },
+  { nombre: "verde", clase: "bg-green-500", texto: "text-green-500" },
+  { nombre: "naranja", clase: "bg-orange-500", texto: "text-orange-500" },
+  { nombre: "morado", clase: "bg-purple-500", texto: "text-purple-500" },
+  { nombre: "rosado", clase: "bg-pink-400", texto: "text-pink-400" },
+  { nombre: "negro", clase: "bg-black", texto: "text-black" },
+  { nombre: "blanco", clase: "bg-white", texto: "text-slate-400" },
+  { nombre: "marrón", clase: "bg-amber-800", texto: "text-amber-800" },
 ];
 
-function mezclarColores() {
-  return [...colores].sort(() => Math.random() - 0.5);
+function mezclarColores(listaColores: typeof colores) {
+  return [...listaColores].sort(() => Math.random() - 0.5).slice(0, 6);
 }
 
 export default function ColoresMagicos({
   onFinalizar,
+  configuracion,
 }: ColoresMagicosProps) {
+  const coloresActivos = configuracion?.colores
+    ? colores.filter((color) =>
+        configuracion.colores
+          .map((item) => item.toLowerCase())
+          .includes(color.nombre)
+      )
+    : colores.filter((color) =>
+        ["rojo", "azul", "amarillo"].includes(color.nombre)
+      );
+
+  const rondasActivas = Array.from(
+    { length: configuracion?.rondas || 6 },
+    (_, index) => coloresActivos[index % coloresActivos.length].nombre
+  );
+
+  const preguntaJuego = configuracion?.pregunta || "Selecciona el color";
+
   const [rondaActual, setRondaActual] = useState(0);
   const [mensaje, setMensaje] = useState("");
   const [juegoTerminado, setJuegoTerminado] = useState(false);
-  const [opciones, setOpciones] = useState(mezclarColores());
+  const [opciones, setOpciones] = useState(mezclarColores(coloresActivos));
 
   const verificarColor = (color: string) => {
-    const respuestaCorrecta = rondas[rondaActual];
+    const respuestaCorrecta = rondasActivas[rondaActual];
 
     if (color === respuestaCorrecta) {
       setMensaje("🎉 ¡Muy bieeeen!");
 
       setTimeout(() => {
-        if (rondaActual === rondas.length - 1) {
+        if (rondaActual === rondasActivas.length - 1) {
           setJuegoTerminado(true);
         } else {
           setRondaActual((prev) => prev + 1);
-          setOpciones(mezclarColores());
+          setOpciones(mezclarColores(coloresActivos));
         }
 
         setMensaje("");
@@ -67,7 +78,7 @@ export default function ColoresMagicos({
   };
 
   const colorActual = colores.find(
-    (color) => color.nombre === rondas[rondaActual]
+    (color) => color.nombre === rondasActivas[rondaActual]
   );
 
   if (juegoTerminado) {
@@ -101,9 +112,9 @@ export default function ColoresMagicos({
         </h2>
 
         <p className="text-5xl font-bold text-slate-700">
-          Selecciona el color{" "}
+          {preguntaJuego}{" "}
           <span className={`uppercase ${colorActual?.texto}`}>
-            {rondas[rondaActual]}
+            {rondasActivas[rondaActual]}
           </span>
         </p>
       </div>
@@ -130,7 +141,7 @@ export default function ColoresMagicos({
       )}
 
       <p className="mt-10 text-3xl font-extrabold text-slate-700">
-        Ronda {rondaActual + 1} de {rondas.length}
+        Ronda {rondaActual + 1} de {rondasActivas.length}
       </p>
     </div>
   );

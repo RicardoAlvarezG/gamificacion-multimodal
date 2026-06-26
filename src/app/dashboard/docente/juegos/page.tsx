@@ -2,24 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import ColoresMagicos from "@/components/juegos/ColoresMagicos";
-import SonidosAnimales from "@/components/juegos/SonidosAnimales";
-import FormasDivertidas from "@/components/juegos/FormasDivertidas";
-import DondeEstaOsito from "@/components/juegos/DondeEstaOsito";
-import CaritasFelices from "@/components/juegos/CaritasFelices";
-import ClasificaAgrupa from "@/components/juegos/ClasificaAgrupa";
-import LasVocalesPerdidas from "@/components/juegos/LasVocalesPerdidas";
-import CuentaConmigo from "@/components/juegos/CuentaConmigo";
-import MemoriaVisual from "@/components/juegos/MemoriaVisual";
-import FigurasPosiciones from "@/components/juegos/FigurasPosiciones";
-import RutinasDiarias from "@/components/juegos/RutinasDiarias";
-import TrabajemosJuntos from "@/components/juegos/TrabajemosJuntos";
-import ConstruyePalabras from "@/components/juegos/ConstruyePalabras";
-import SecuenciasDivertidas from "@/components/juegos/SecuenciasDivertidas";
-import AsociacionImagenPalabra from "@/components/juegos/AsociacionImagenPalabra";
-import RompecabezasInteligente from "@/components/juegos/RompecabezasInteligente";
-import EmocionesAccion from "@/components/juegos/EmocionesAccion";
-import ElIntruso from "@/components/juegos/ElIntruso";
+import PersonalizarJuegoModal from "@/components/personalizacion-juegos/PersonalizarJuegoModal";
+import EjecutarJuego from "@/components/juegos/EjecutarJuego";
 
 type Aula = {
   id: number;
@@ -59,6 +43,7 @@ type Juego = {
   }[];
 };
 
+
 export default function DocenteJuegosPage() {
   const [aulaSeleccionada, setAulaSeleccionada] = useState<Aula | null>(null);
   const [aulas, setAulas] = useState<Aula[]>([]);
@@ -67,6 +52,11 @@ export default function DocenteJuegosPage() {
   const [estudiantes, setEstudiantes] = useState<Estudiante[]>([]);
   const [juegos, setJuegos] = useState<Juego[]>([]);
   const [juegoSeleccionado, setJuegoSeleccionado] = useState<Juego | null>(null);
+
+  const [mostrarPersonalizar, setMostrarPersonalizar] = useState(false);
+
+  const [configuracionPersonalizada, setConfiguracionPersonalizada] =
+  useState<unknown>(null);
 
   const [juegoIniciado, setJuegoIniciado] = useState(false);
   const [juegoFinalizado, setJuegoFinalizado] = useState(false);
@@ -178,6 +168,12 @@ export default function DocenteJuegosPage() {
   }
   };
 
+  const abrirPersonalizarJuego = () => {
+  if (!juegoSeleccionado) return;
+
+  setMostrarPersonalizar(true);
+  };
+
   const iniciarJuego = async () => {
     if (!aulaSeleccionada || !juegoSeleccionado) return;
 
@@ -222,6 +218,8 @@ export default function DocenteJuegosPage() {
     setSesionActiva(false);
     setEstudiantes([]);
     setEvaluaciones({});
+    setConfiguracionPersonalizada(null);
+    setMostrarPersonalizar(false);
   };
 
 const guardarEvaluacion = async () => {
@@ -264,8 +262,13 @@ const guardarEvaluacion = async () => {
 
     setJuegoFinalizado(false);
     setJuegoIniciado(false);
-  
     setEvaluaciones({});
+
+    // Restablece la personalización temporal.
+    // La próxima vez que se inicie el juego utilizará
+    // la configuración predeterminada.
+    setConfiguracionPersonalizada(null);
+    setMostrarPersonalizar(false);
   } catch (error) {
     console.error("Error al guardar evaluación:", error);
     alert("Error al conectar con el servidor");
@@ -315,6 +318,8 @@ const finalizarSesion = async () => {
     setAulaSeleccionada(null);
     setEstudiantes([]);
     setEvaluaciones({});
+    setConfiguracionPersonalizada(null);
+    setMostrarPersonalizar(false);
     setNumeroSesion(1);
 
     alert("Sesión finalizada correctamente.");
@@ -448,6 +453,19 @@ const finalizarSesion = async () => {
                     🔒 Finalizar sesión
                   </button>
                 </div>
+
+                  <button
+                    onClick={abrirPersonalizarJuego}
+                    disabled={!juegoSeleccionado}
+                    className={`mt-4 w-full rounded-2xl px-6 py-4 font-bold shadow-md transition ${
+                      juegoSeleccionado
+                        ? "bg-purple-600 text-white hover:bg-purple-700"
+                        : "cursor-not-allowed bg-slate-700 text-white opacity-60"
+                    }`}
+                  >
+                    ⚙ Personalizar juego
+                  </button>
+
               </div>
 
               <div className="rounded-[2rem] bg-white/90 p-8 shadow-xl">
@@ -471,6 +489,8 @@ const finalizarSesion = async () => {
                         );
 
                         setJuegoSeleccionado(juego || null);
+                        setConfiguracionPersonalizada(null);
+                        setMostrarPersonalizar(false);
                       }}
                       className="w-full rounded-2xl border border-purple-200 bg-white p-4 font-bold text-purple-700 shadow-sm outline-none"
                     >
@@ -519,156 +539,15 @@ const finalizarSesion = async () => {
           )}
 
           {juegoIniciado && juegoSeleccionado && (
-            <>
-              {juegoSeleccionado.nombre === "Colores Mágicos" ? (
-                <ColoresMagicos
-                  onFinalizar={() => {
-                    setJuegoIniciado(false);
-                    setJuegoFinalizado(true);
-                  }}
-                />
-              ) : juegoSeleccionado.nombre === "Sonidos de Animales" ? (
-                  <SonidosAnimales
-                    onFinalizar={() => {
-                      setJuegoIniciado(false);
-                      setJuegoFinalizado(true);
-                    }}
-                  />
-                ) : juegoSeleccionado.nombre === "Formas Divertidas" ? (
-                  <FormasDivertidas
-                    onFinalizar={() => {
-                      setJuegoIniciado(false);
-                      setJuegoFinalizado(true);
-                    }}
-                  />
-                ) : juegoSeleccionado.nombre === "¿Dónde está el Osito?" ? (
-                  <DondeEstaOsito
-                    onFinalizar={() => {
-                      setJuegoIniciado(false);
-                      setJuegoFinalizado(true);
-                    }}
-                  />
-                ) : juegoSeleccionado.nombre === "Caritas Felices" ? (
-                  <CaritasFelices
-                    onFinalizar={() => {
-                      setJuegoIniciado(false);
-                      setJuegoFinalizado(true);
-                    }}
-                  />
-                ) : juegoSeleccionado.nombre === "Clasifica y Agrupa" ? (
-                  <ClasificaAgrupa
-                    onFinalizar={() => {
-                      setJuegoIniciado(false);
-                      setJuegoFinalizado(true);
-                    }}
-                  />
-                ) : juegoSeleccionado.nombre === "Las Vocales Perdidas" ? (
-                  <LasVocalesPerdidas
-                    onFinalizar={() => {
-                      setJuegoIniciado(false);
-                      setJuegoFinalizado(true);
-                    }}
-                  />
-                ) : juegoSeleccionado.nombre === "Cuenta Conmigo" ? (
-                  <CuentaConmigo
-                    onFinalizar={() => {
-                      setJuegoIniciado(false);
-                      setJuegoFinalizado(true);
-                    }}
-                  />
-                ): juegoSeleccionado.nombre === "Memoria Visual" ? (
-                  <MemoriaVisual
-                    onFinalizar={() => {
-                      setJuegoIniciado(false);
-                      setJuegoFinalizado(true);
-                    }}
-                  />
-                )  : juegoSeleccionado.nombre === "Figuras y Posiciones" ? (
-                  <FigurasPosiciones
-                    onFinalizar={() => {
-                      setJuegoIniciado(false);
-                      setJuegoFinalizado(true);
-                    }}
-                  />
-                )  : juegoSeleccionado.nombre === "Rutinas Diarias" ? (
-                  <RutinasDiarias
-                    onFinalizar={() => {
-                      setJuegoIniciado(false);
-                      setJuegoFinalizado(true);
-                    }}
-                  />
-                  ) : juegoSeleccionado.nombre === "Trabajemos Juntos" ? (
-                  <TrabajemosJuntos
-                    onFinalizar={() => {
-                      setJuegoIniciado(false);
-                      setJuegoFinalizado(true);
-                    }}
-                  /> 
-                  ) : juegoSeleccionado.nombre === "Construye Palabras" ? (
-                  <ConstruyePalabras
-                    onFinalizar={() => {
-                      setJuegoIniciado(false);
-                      setJuegoFinalizado(true);
-                    }}
-                  />
-                  ): juegoSeleccionado.nombre === "Secuencias Divertidas" ? (
-                  <SecuenciasDivertidas
-                    onFinalizar={() => {
-                      setJuegoIniciado(false);
-                      setJuegoFinalizado(true);
-                    }}
-                  />
-                ): juegoSeleccionado.nombre === "Asociación Imagen-Palabra" ? (
-                  <AsociacionImagenPalabra
-                    onFinalizar={() => {
-                      setJuegoIniciado(false);
-                      setJuegoFinalizado(true);
-                    }}
-                  />
-                ) : juegoSeleccionado.nombre === "Rompecabezas Inteligente" ? (
-                  <RompecabezasInteligente
-                    onFinalizar={() => {
-                      setJuegoIniciado(false);
-                      setJuegoFinalizado(true);
-                    }}
-                  />
-                ) : juegoSeleccionado.nombre === "Emociones en Acción" ? (
-                  <EmocionesAccion
-                    onFinalizar={() => {
-                      setJuegoIniciado(false);
-                      setJuegoFinalizado(true);
-                    }}
-                  />
-                  ) : juegoSeleccionado.nombre === "Pequeños Retos" ? (
-                    <ElIntruso
-                      onFinalizar={() => {
-                        setJuegoIniciado(false);
-                        setJuegoFinalizado(true);
-                      }}
-                    />
-                  ):(
-                <div className="mx-auto mt-8 max-w-xl rounded-[2rem] bg-white p-8 shadow-xl">
-                  <h2 className="mb-4 text-3xl font-extrabold text-purple-700">
-                    🎮 {juegoSeleccionado.nombre}
-                  </h2>
-
-                  <p className="mb-6 text-slate-600">
-                    Juego en ejecución...
-                  </p>
-
-                  <button
-                    onClick={() => {
-                      setJuegoIniciado(false);
-                      setJuegoFinalizado(true);
-                    }}
-                    className="rounded-2xl bg-red-500 px-6 py-4 font-bold text-white shadow-md transition hover:scale-105"
-                  >
-                    ⬛ Finalizar Juego
-                  </button>
-                </div>
-              )}
-            </>
-          )}
+              <EjecutarJuego
+                juego={juegoSeleccionado}
+                configuracionPersonalizada={configuracionPersonalizada as any}
+                onFinalizar={() => {
+                  setJuegoIniciado(false);
+                  setJuegoFinalizado(true);
+                }}
+              />
+            )}
 
         {juegoFinalizado && juegoSeleccionado && (
           <div className="mt-8 rounded-[2rem] bg-white p-8 shadow-xl">
@@ -746,6 +625,27 @@ const finalizarSesion = async () => {
             </div>
           </div>
         )}
+
+        {/* ===========================
+            MODAL: PERSONALIZAR JUEGO
+            Se muestra únicamente cuando el docente
+            presiona "Personalizar juego".
+            La configuración realizada es temporal
+            y solo se utilizará durante la sesión
+            actual del juego.
+            =========================== */}
+
+        <PersonalizarJuegoModal
+          juego={juegoSeleccionado}
+          abierto={mostrarPersonalizar}
+          configuracionInicial={configuracionPersonalizada as any}
+          onGuardar={(configuracion) => {
+            setConfiguracionPersonalizada(configuracion);
+            setMostrarPersonalizar(false);
+            alert("Juego personalizado correctamente.");
+          }}
+          onCerrar={() => setMostrarPersonalizar(false)}
+        />
       </section>
     </main>
   );
