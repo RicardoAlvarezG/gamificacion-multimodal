@@ -5,15 +5,23 @@ import PersonalizarColoresMagicos, {
   type ConfiguracionColoresMagicos,
 } from "./PersonalizarColoresMagicos";
 
+import PersonalizarSonidosAnimales, {
+  type ConfiguracionSonidosAnimales,
+} from "./PersonalizarSonidosAnimales";
+
 type Juego = {
   nombre: string;
 };
 
+type ConfiguracionJuego =
+  | ConfiguracionColoresMagicos
+  | ConfiguracionSonidosAnimales;
+
 type Props = {
   juego: Juego | null;
   abierto: boolean;
-  configuracionInicial: ConfiguracionColoresMagicos | null;
-  onGuardar: (configuracion: ConfiguracionColoresMagicos) => void;
+  configuracionInicial: ConfiguracionJuego | null;
+  onGuardar: (configuracion: ConfiguracionJuego) => void;
   onCerrar: () => void;
 };
 
@@ -28,8 +36,19 @@ export default function PersonalizarJuegoModal({
 
   const formularios: Record<string, ReactNode> = {
     "Colores Mágicos": (
-      <PersonalizarColoresMagicos
-        configuracionInicial={configuracionInicial ?? undefined}
+    <PersonalizarColoresMagicos
+        configuracionInicial={
+        configuracionInicial as ConfiguracionColoresMagicos | undefined
+        }
+        onGuardar={onGuardar}
+        onCancelar={onCerrar}
+    />
+    ),
+    "Sonidos de Animales": (
+      <PersonalizarSonidosAnimales
+        configuracionInicial={
+        configuracionInicial as ConfiguracionSonidosAnimales | undefined
+        }
         onGuardar={onGuardar}
         onCancelar={onCerrar}
       />

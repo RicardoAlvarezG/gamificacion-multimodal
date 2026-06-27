@@ -21,14 +21,18 @@ import LasVocalesPerdidas from "@/components/juegos/LasVocalesPerdidas";
 import ClasificaAgrupa from "@/components/juegos/ClasificaAgrupa";
 import ElIntruso from "@/components/juegos/ElIntruso";
 import type { ConfiguracionColoresMagicos } from "@/components/personalizacion-juegos/PersonalizarColoresMagicos";
+import type { ConfiguracionSonidosAnimales } from "@/components/personalizacion-juegos/PersonalizarSonidosAnimales";
 
 type Juego = {
   nombre: string;
 };
+type ConfiguracionJuego =
+  | ConfiguracionColoresMagicos
+  | ConfiguracionSonidosAnimales;
 
 type Props = {
   juego: Juego;
-  configuracionPersonalizada: ConfiguracionColoresMagicos | null;
+  configuracionPersonalizada: ConfiguracionJuego | null;
   onFinalizar: () => void;
 };
 
@@ -42,11 +46,20 @@ export default function EjecutarJuego({
   const juegos: Record<string, ReactNode> = {
     "Colores Mágicos": (
       <ColoresMagicos
-        configuracion={configuracionPersonalizada ?? undefined}
-        onFinalizar={onFinalizar}
-      />
+            configuracion={
+                configuracionPersonalizada as ConfiguracionColoresMagicos | undefined
+            }
+            onFinalizar={onFinalizar}
+            />
     ),
-    "Sonidos de Animales": <SonidosAnimales {...propsBasicos} />,
+    "Sonidos de Animales": (
+        <SonidosAnimales
+            configuracion={
+            configuracionPersonalizada as ConfiguracionSonidosAnimales | undefined
+            }
+            onFinalizar={onFinalizar}
+        />
+        ),
     "Formas Divertidas": <FormasDivertidas {...propsBasicos} />,
     "¿Dónde está el Osito?": <DondeEstaOsito {...propsBasicos} />,
     "Caritas Felices": <CaritasFelices {...propsBasicos} />,

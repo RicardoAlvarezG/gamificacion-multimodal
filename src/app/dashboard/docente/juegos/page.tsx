@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import PersonalizarJuegoModal from "@/components/personalizacion-juegos/PersonalizarJuegoModal";
 import EjecutarJuego from "@/components/juegos/EjecutarJuego";
+import type { ConfiguracionColoresMagicos } from "@/components/personalizacion-juegos/PersonalizarColoresMagicos";
+import type { ConfiguracionSonidosAnimales } from "@/components/personalizacion-juegos/PersonalizarSonidosAnimales";
 
 type Aula = {
   id: number;
@@ -43,6 +45,14 @@ type Juego = {
   }[];
 };
 
+type ConfiguracionJuego =
+  | ConfiguracionColoresMagicos
+  | ConfiguracionSonidosAnimales;
+
+type ConfiguracionesPersonalizadas = Partial<
+  Record<string, ConfiguracionJuego>
+>;
+
 
 export default function DocenteJuegosPage() {
   const [aulaSeleccionada, setAulaSeleccionada] = useState<Aula | null>(null);
@@ -55,8 +65,8 @@ export default function DocenteJuegosPage() {
 
   const [mostrarPersonalizar, setMostrarPersonalizar] = useState(false);
 
-  const [configuracionPersonalizada, setConfiguracionPersonalizada] =
-  useState<unknown>(null);
+  const [configuracionesPersonalizadas, setConfiguracionesPersonalizadas] =
+  useState<ConfiguracionesPersonalizadas>({});
 
   const [juegoIniciado, setJuegoIniciado] = useState(false);
   const [juegoFinalizado, setJuegoFinalizado] = useState(false);
@@ -218,7 +228,7 @@ export default function DocenteJuegosPage() {
     setSesionActiva(false);
     setEstudiantes([]);
     setEvaluaciones({});
-    setConfiguracionPersonalizada(null);
+    setConfiguracionesPersonalizadas({});
     setMostrarPersonalizar(false);
   };
 
@@ -267,7 +277,7 @@ const guardarEvaluacion = async () => {
     // Restablece la personalización temporal.
     // La próxima vez que se inicie el juego utilizará
     // la configuración predeterminada.
-    setConfiguracionPersonalizada(null);
+    setConfiguracionesPersonalizadas({});
     setMostrarPersonalizar(false);
   } catch (error) {
     console.error("Error al guardar evaluación:", error);
@@ -318,7 +328,7 @@ const finalizarSesion = async () => {
     setAulaSeleccionada(null);
     setEstudiantes([]);
     setEvaluaciones({});
-    setConfiguracionPersonalizada(null);
+    setConfiguracionesPersonalizadas({});
     setMostrarPersonalizar(false);
     setNumeroSesion(1);
 
@@ -489,7 +499,7 @@ const finalizarSesion = async () => {
                         );
 
                         setJuegoSeleccionado(juego || null);
-                        setConfiguracionPersonalizada(null);
+                        setConfiguracionesPersonalizadas({});
                         setMostrarPersonalizar(false);
                       }}
                       className="w-full rounded-2xl border border-purple-200 bg-white p-4 font-bold text-purple-700 shadow-sm outline-none"
@@ -541,7 +551,11 @@ const finalizarSesion = async () => {
           {juegoIniciado && juegoSeleccionado && (
               <EjecutarJuego
                 juego={juegoSeleccionado}
-                configuracionPersonalizada={configuracionPersonalizada as any}
+                configuracionPersonalizada={
+                    juegoSeleccionado
+                      ? configuracionesPersonalizadas[juegoSeleccionado.nombre] ?? null
+                      : null
+                  }
                 onFinalizar={() => {
                   setJuegoIniciado(false);
                   setJuegoFinalizado(true);
@@ -638,9 +652,19 @@ const finalizarSesion = async () => {
         <PersonalizarJuegoModal
           juego={juegoSeleccionado}
           abierto={mostrarPersonalizar}
-          configuracionInicial={configuracionPersonalizada as any}
+          configuracionInicial={
+            juegoSeleccionado
+              ? configuracionesPersonalizadas[juegoSeleccionado.nombre] ?? null
+              : null
+          }
           onGuardar={(configuracion) => {
-            setConfiguracionPersonalizada(configuracion);
+            if (!juegoSeleccionado) return;
+
+            setConfiguracionesPersonalizadas((prev) => ({
+              ...prev,
+              [juegoSeleccionado.nombre]: configuracion,
+            }));
+
             setMostrarPersonalizar(false);
             alert("Juego personalizado correctamente.");
           }}

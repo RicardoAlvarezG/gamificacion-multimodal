@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { ConfiguracionSonidosAnimales } from "@/components/personalizacion-juegos/PersonalizarSonidosAnimales";
 
 type Animal = {
   nombre: string;
@@ -11,10 +12,11 @@ type Animal = {
 };
 
 type Props = {
+  configuracion?: ConfiguracionSonidosAnimales;
   onFinalizar: () => void;
 };
 
-const animales: Animal[] = [
+const ANIMALES_DISPONIBLES: Animal[] = [
   {
     nombre: "Perro",
     imagen: "/juegos/animales/perro.webp",
@@ -50,14 +52,102 @@ const animales: Animal[] = [
     emoji: "🐮",
     color: "from-blue-100 to-slate-100",
   },
+  {
+    nombre: "Cabra",
+    imagen: "/juegos/animales/cabra.webp",
+    sonido: "/juegos/sonidos/sonidocabra.mp3",
+    emoji: "🐐",
+    color: "from-lime-100 to-green-100",
+  },
+  {
+    nombre: "Burro",
+    imagen: "/juegos/animales/burro.webp",
+    sonido: "/juegos/sonidos/sonidoburro.mp3",
+    emoji: "🫏",
+    color: "from-stone-100 to-orange-100",
+  },
+  {
+    nombre: "Gallina",
+    imagen: "/juegos/animales/gallina.webp",
+    sonido: "/juegos/sonidos/sonidogallina.mp3",
+    emoji: "🐔",
+    color: "from-red-100 to-yellow-100",
+  },
+  {
+    nombre: "Gallo",
+    imagen: "/juegos/animales/gallo.webp",
+    sonido: "/juegos/sonidos/sonidogallo.mp3",
+    emoji: "🐓",
+    color: "from-orange-100 to-red-100",
+  },
+  {
+    nombre: "Oveja",
+    imagen: "/juegos/animales/oveja.webp",
+    sonido: "/juegos/sonidos/sonidooveja.mp3",
+    emoji: "🐑",
+    color: "from-sky-100 to-white",
+  },
+  {
+    nombre: "Pavo",
+    imagen: "/juegos/animales/pavo.webp",
+    sonido: "/juegos/sonidos/sonidopavo.mp3",
+    emoji: "🦃",
+    color: "from-yellow-100 to-red-100",
+  },
+  {
+    nombre: "Caballo",
+    imagen: "/juegos/animales/caballo.webp",
+    sonido: "/juegos/sonidos/sonidocaballo.mp3",
+    emoji: "🐴",
+    color: "from-amber-100 to-orange-100",
+  },
+  {
+    nombre: "Cerdo",
+    imagen: "/juegos/animales/cerdo.webp",
+    sonido: "/juegos/sonidos/sonidocerdo.mp3",
+    emoji: "🐷",
+    color: "from-pink-100 to-rose-100",
+  },
+  {
+    nombre: "Cuy",
+    imagen: "/juegos/animales/cuy.webp",
+    sonido: "/juegos/sonidos/sonidocuy.mp3",
+    emoji: "🐹",
+    color: "from-yellow-100 to-stone-100",
+  },
 ];
 
 function mezclarArray<T>(array: T[]) {
   return [...array].sort(() => Math.random() - 0.5);
 }
 
-export default function SonidosAnimales({ onFinalizar }: Props) {
-  const rondas = useMemo(() => mezclarArray(animales).slice(0, 5), []);
+export default function SonidosAnimales({
+  configuracion,
+  onFinalizar,
+}: Props) {
+  const modo = configuracion?.modo || "ESCUCHAR_Y_ELEGIR_ANIMAL";
+
+  const animalesConfigurados = useMemo(() => {
+    if (!configuracion?.animales || configuracion.animales.length < 3) {
+      return ANIMALES_DISPONIBLES.slice(0, 5);
+    }
+
+    const seleccionados = ANIMALES_DISPONIBLES.filter((animal) =>
+      configuracion.animales.includes(animal.nombre)
+    );
+
+    return seleccionados.length >= 3 ? seleccionados : ANIMALES_DISPONIBLES.slice(0, 5);
+  }, [configuracion]);
+
+  const cantidadRondas = Math.min(
+    configuracion?.rondas || 5,
+    animalesConfigurados.length
+  );
+
+  const rondas = useMemo(
+    () => mezclarArray(animalesConfigurados).slice(0, cantidadRondas),
+    [animalesConfigurados, cantidadRondas]
+  );
 
   const [rondaActual, setRondaActual] = useState(0);
   const [mensaje, setMensaje] = useState("");
@@ -67,7 +157,9 @@ export default function SonidosAnimales({ onFinalizar }: Props) {
   const animalCorrecto = rondas[rondaActual];
 
   const opciones = useMemo(() => {
-    const incorrectos = animales.filter(
+    if (!animalCorrecto) return [];
+
+    const incorrectos = animalesConfigurados.filter(
       (animal) => animal.nombre !== animalCorrecto.nombre
     );
 
@@ -75,15 +167,15 @@ export default function SonidosAnimales({ onFinalizar }: Props) {
       animalCorrecto,
       ...mezclarArray(incorrectos).slice(0, 2),
     ]);
-  }, [animalCorrecto, rondaActual]);
+  }, [animalCorrecto, animalesConfigurados]);
 
-  const reproducirSonido = () => {
-    const audio = new Audio(animalCorrecto.sonido);
+  const reproducirSonido = (sonido?: string) => {
+    const audio = new Audio(sonido || animalCorrecto.sonido);
     audio.play();
   };
 
   const seleccionarAnimal = (animal: Animal) => {
-    if (respondido) return;
+    if (respondido || !animalCorrecto) return;
 
     setAnimalElegido(animal.nombre);
 
@@ -104,12 +196,14 @@ export default function SonidosAnimales({ onFinalizar }: Props) {
     setRespondido(false);
     setAnimalElegido(null);
 
-    if (rondaActual < 4) {
+    if (rondaActual < cantidadRondas - 1) {
       setRondaActual(rondaActual + 1);
     }
   };
 
-  const juegoTerminado = rondaActual === 4 && respondido;
+  const juegoTerminado = rondaActual === cantidadRondas - 1 && respondido;
+
+  if (!animalCorrecto) return null;
 
   return (
     <div className="w-full min-h-[75vh] rounded-[2rem] p-8 bg-gradient-to-br from-amber-50 via-pink-50 to-sky-100 shadow-xl border border-white">
@@ -124,11 +218,14 @@ export default function SonidosAnimales({ onFinalizar }: Props) {
           </h2>
 
           <p className="text-slate-600 mt-3 text-lg">
-            Escucha el sonido y toca el animal correcto.
+            {configuracion?.pregunta ||
+            (modo === "ESCUCHAR_Y_ELEGIR_ANIMAL"
+              ? "Escucha el sonido y toca el animal correcto."
+              : "Mira el animal y toca el sonido correcto.")}
           </p>
 
           <div className="flex justify-center gap-2 mt-5">
-            {[0, 1, 2, 3, 4].map((ronda) => (
+            {Array.from({ length: cantidadRondas }).map((_, ronda) => (
               <div
                 key={ronda}
                 className={`w-12 h-12 rounded-full flex items-center justify-center font-bold shadow ${
@@ -145,50 +242,113 @@ export default function SonidosAnimales({ onFinalizar }: Props) {
           </div>
         </div>
 
-        <div className="flex justify-center mb-8">
-          <button
-            onClick={reproducirSonido}
-            className="bg-gradient-to-r from-orange-400 to-pink-500 hover:scale-105 text-white text-3xl font-extrabold px-10 py-5 rounded-full shadow-xl transition"
-          >
-            🔊 Escuchar sonido
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {opciones.map((animal) => {
-            const esElegido = animalElegido === animal.nombre;
-            const esCorrecto = animal.nombre === animalCorrecto.nombre;
-
-            return (
+        {modo === "ESCUCHAR_Y_ELEGIR_ANIMAL" ? (
+          <>
+            <div className="flex justify-center mb-8">
               <button
-                key={animal.nombre}
-                onClick={() => seleccionarAnimal(animal)}
-                className={`rounded-[2rem] p-6 shadow-xl border-4 transition transform hover:scale-105 bg-gradient-to-br ${animal.color}
-                  ${
-                    esElegido && esCorrecto
-                      ? "border-green-500 scale-105"
-                      : esElegido && !esCorrecto
-                      ? "border-red-400"
-                      : "border-white"
-                  }`}
+                onClick={() => reproducirSonido()}
+                className="bg-gradient-to-r from-orange-400 to-pink-500 hover:scale-105 text-white text-3xl font-extrabold px-10 py-5 rounded-full shadow-xl transition"
+              >
+                🔊 Escuchar sonido
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {opciones.map((animal) => {
+                const esElegido = animalElegido === animal.nombre;
+                const esCorrecto = animal.nombre === animalCorrecto.nombre;
+
+                return (
+                  <button
+                    key={animal.nombre}
+                    onClick={() => seleccionarAnimal(animal)}
+                    className={`rounded-[2rem] p-6 shadow-xl border-4 transition transform hover:scale-105 bg-gradient-to-br ${animal.color}
+                      ${
+                        esElegido && esCorrecto
+                          ? "border-green-500 scale-105"
+                          : esElegido && !esCorrecto
+                          ? "border-red-400"
+                          : "border-white"
+                      }`}
+                  >
+                    <div className="bg-white rounded-[2rem] p-4 shadow-inner">
+                      <img
+                        src={animal.imagen}
+                        alt={animal.nombre}
+                        className="w-60 h-60 object-contain mx-auto"
+                      />
+                    </div>
+
+                    <div className="mt-5 bg-white rounded-full py-3 shadow">
+                      <p className="text-3xl font-extrabold text-slate-700">
+                        {animal.emoji} {animal.nombre}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="flex justify-center mb-8">
+              <div
+                className={`rounded-[2rem] p-6 shadow-xl border-4 border-white bg-gradient-to-br ${animalCorrecto.color}`}
               >
                 <div className="bg-white rounded-[2rem] p-4 shadow-inner">
                   <img
-                    src={animal.imagen}
-                    alt={animal.nombre}
-                    className="w-60 h-60 object-contain mx-auto"
+                    src={animalCorrecto.imagen}
+                    alt={animalCorrecto.nombre}
+                    className="w-72 h-72 object-contain mx-auto"
                   />
                 </div>
 
-                <div className="mt-5 bg-white rounded-full py-3 shadow">
+                <div className="mt-5 bg-white rounded-full py-3 px-8 shadow text-center">
                   <p className="text-3xl font-extrabold text-slate-700">
-                    {animal.emoji} {animal.nombre}
+                    {animalCorrecto.emoji} {animalCorrecto.nombre}
                   </p>
                 </div>
-              </button>
-            );
-          })}
-        </div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {opciones.map((animal) => {
+                const esElegido = animalElegido === animal.nombre;
+                const esCorrecto = animal.nombre === animalCorrecto.nombre;
+
+                return (
+                  <button
+                    key={animal.nombre}
+                    onClick={() => seleccionarAnimal(animal)}
+                    className={`rounded-[2rem] bg-white p-8 shadow-xl border-4 transition transform hover:scale-105
+                      ${
+                        esElegido && esCorrecto
+                          ? "border-green-500 scale-105"
+                          : esElegido && !esCorrecto
+                          ? "border-red-400"
+                          : "border-purple-100"
+                      }`}
+                  >
+                    <p className="mb-4 text-4xl font-extrabold text-purple-700">
+                      🔊 Opción
+                    </p>
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        reproducirSonido(animal.sonido);
+                      }}
+                      className="rounded-full bg-orange-400 px-8 py-4 text-2xl font-extrabold text-white shadow-md transition hover:scale-105"
+                    >
+                      Escuchar
+                    </button>
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        )}
 
         {mensaje && (
           <div className="text-center mt-8">
