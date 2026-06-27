@@ -9,13 +9,23 @@ import PersonalizarSonidosAnimales, {
   type ConfiguracionSonidosAnimales,
 } from "./PersonalizarSonidosAnimales";
 
+import PersonalizarFormasDivertidas, {
+  type ConfiguracionFormasDivertidas,
+} from "./PersonalizarFormasDivertidas";
+
+import PersonalizarDondeEstaOsito, {
+  type ConfiguracionDondeEstaOsito,
+} from "./PersonalizarDondeEstaOsito";
+
 type Juego = {
   nombre: string;
 };
 
 type ConfiguracionJuego =
   | ConfiguracionColoresMagicos
-  | ConfiguracionSonidosAnimales;
+  | ConfiguracionSonidosAnimales
+  | ConfiguracionFormasDivertidas
+  | ConfiguracionDondeEstaOsito;
 
 type Props = {
   juego: Juego | null;
@@ -53,6 +63,25 @@ export default function PersonalizarJuegoModal({
         onCancelar={onCerrar}
       />
     ),
+    "Formas Divertidas": (
+      <PersonalizarFormasDivertidas
+        configuracionInicial={
+          configuracionInicial as ConfiguracionFormasDivertidas | undefined
+        }
+        onGuardar={onGuardar}
+        onCancelar={onCerrar}
+      />
+    ),
+    "¿Dónde está el Osito?": (
+    <PersonalizarDondeEstaOsito
+        configuracionInicial={
+        configuracionInicial as ConfiguracionDondeEstaOsito | undefined
+        }
+        onGuardar={onGuardar}
+        onCancelar={onCerrar}
+    />
+    ),
+
   };
 
   const formulario = formularios[juego.nombre];

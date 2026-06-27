@@ -6,6 +6,8 @@ import PersonalizarJuegoModal from "@/components/personalizacion-juegos/Personal
 import EjecutarJuego from "@/components/juegos/EjecutarJuego";
 import type { ConfiguracionColoresMagicos } from "@/components/personalizacion-juegos/PersonalizarColoresMagicos";
 import type { ConfiguracionSonidosAnimales } from "@/components/personalizacion-juegos/PersonalizarSonidosAnimales";
+import type { ConfiguracionFormasDivertidas } from "@/components/personalizacion-juegos/PersonalizarFormasDivertidas";
+import type { ConfiguracionDondeEstaOsito } from "@/components/personalizacion-juegos/PersonalizarDondeEstaOsito";
 
 type Aula = {
   id: number;
@@ -47,7 +49,10 @@ type Juego = {
 
 type ConfiguracionJuego =
   | ConfiguracionColoresMagicos
-  | ConfiguracionSonidosAnimales;
+  | ConfiguracionSonidosAnimales
+  | ConfiguracionFormasDivertidas
+  | ConfiguracionDondeEstaOsito;
+  
 
 type ConfiguracionesPersonalizadas = Partial<
   Record<string, ConfiguracionJuego>

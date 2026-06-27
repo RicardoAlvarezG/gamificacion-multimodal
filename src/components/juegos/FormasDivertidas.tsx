@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { ConfiguracionFormasDivertidas } from "@/components/personalizacion-juegos/PersonalizarFormasDivertidas";
 
 type Forma = {
   nombre: string;
@@ -9,31 +10,75 @@ type Forma = {
 
 type Props = {
   onFinalizar: () => void;
+  configuracion?: ConfiguracionFormasDivertidas;
 };
 
-const formas: Forma[] = [
+const formasDisponibles: Forma[] = [
   {
-    nombre: "Círculo",
+    nombre: "CIRCULO",
     imagen: "/juegos/formas/circulo.webp",
   },
   {
-    nombre: "Cuadrado",
+    nombre: "CUADRADO",
     imagen: "/juegos/formas/cuadrado.webp",
   },
   {
-    nombre: "Triángulo",
+    nombre: "TRIANGULO",
     imagen: "/juegos/formas/triangulo.webp",
   },
   {
-    nombre: "Rectángulo",
+    nombre: "RECTANGULO",
     imagen: "/juegos/formas/rectangulo.webp",
+  },
+  {
+    nombre: "ROMBO",
+    imagen: "/juegos/formas/rombo.webp",
+  },
+  {
+    nombre: "PENTAGONO",
+    imagen: "/juegos/formas/pentagono.webp",
+  },
+  {
+    nombre: "HEXAGONO",
+    imagen: "/juegos/formas/hexagono.webp",
+  },
+  {
+    nombre: "OVALO",
+    imagen: "/juegos/formas/ovalo.webp",
+  },
+  {
+    nombre: "ESTRELLA",
+    imagen: "/juegos/formas/estrella.webp",
+  },
+  {
+    nombre: "OCTOGONO",
+    imagen: "/juegos/formas/octogono.webp",
   },
 ];
 
-export default function FormasDivertidas({ onFinalizar }: Props) {
+export default function FormasDivertidas({
+  onFinalizar,
+  configuracion,
+}: Props) {
+  const formasJuego = useMemo(() => {
+    if (!configuracion?.formas?.length) {
+      return formasDisponibles.filter((forma) =>
+        ["CIRCULO", "CUADRADO", "TRIANGULO", "RECTANGULO"].includes(
+          forma.nombre
+        )
+      );
+    }
+
+    return formasDisponibles.filter((forma) =>
+      configuracion.formas.includes(forma.nombre)
+    );
+  }, [configuracion]);
+
   const rondas = useMemo(() => {
-    return [...formas].sort(() => Math.random() - 0.5).slice(0, 4);
-  }, []);
+    return [...formasJuego]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, configuracion?.rondas || 4);
+  }, [formasJuego, configuracion]);
 
   const [rondaActual, setRondaActual] = useState(0);
   const [mensaje, setMensaje] = useState("");
@@ -44,13 +89,13 @@ export default function FormasDivertidas({ onFinalizar }: Props) {
   const opciones = useMemo(() => {
     if (!formaCorrecta) return [];
 
-    const incorrectas = formas
+    const incorrectas = formasJuego
       .filter((forma) => forma.nombre !== formaCorrecta.nombre)
       .sort(() => Math.random() - 0.5)
       .slice(0, 2);
 
     return [formaCorrecta, ...incorrectas].sort(() => Math.random() - 0.5);
-  }, [formaCorrecta]);
+  }, [formaCorrecta, formasJuego]);
 
   const seleccionarForma = (forma: Forma) => {
     if (bloqueado || !formaCorrecta) return;
@@ -92,7 +137,7 @@ export default function FormasDivertidas({ onFinalizar }: Props) {
 
         <div className="text-center mb-8">
           <span className="inline-block bg-purple-100 text-purple-700 px-6 py-3 rounded-full font-bold text-xl">
-            Ronda {rondaActual + 1} de 4
+            Ronda {rondaActual + 1} de {rondas.length}
           </span>
         </div>
 
@@ -138,9 +183,7 @@ export default function FormasDivertidas({ onFinalizar }: Props) {
 
         {mensaje && (
           <div className="mt-8 text-center">
-            <div className="text-4xl font-bold text-purple-700">
-              {mensaje}
-            </div>
+            <div className="text-4xl font-bold text-purple-700">{mensaje}</div>
           </div>
         )}
 

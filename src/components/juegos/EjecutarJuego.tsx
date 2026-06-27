@@ -22,13 +22,17 @@ import ClasificaAgrupa from "@/components/juegos/ClasificaAgrupa";
 import ElIntruso from "@/components/juegos/ElIntruso";
 import type { ConfiguracionColoresMagicos } from "@/components/personalizacion-juegos/PersonalizarColoresMagicos";
 import type { ConfiguracionSonidosAnimales } from "@/components/personalizacion-juegos/PersonalizarSonidosAnimales";
+import type { ConfiguracionFormasDivertidas } from "@/components/personalizacion-juegos/PersonalizarFormasDivertidas";
+import type { ConfiguracionDondeEstaOsito } from "@/components/personalizacion-juegos/PersonalizarDondeEstaOsito";
 
 type Juego = {
   nombre: string;
 };
 type ConfiguracionJuego =
   | ConfiguracionColoresMagicos
-  | ConfiguracionSonidosAnimales;
+  | ConfiguracionSonidosAnimales
+  | ConfiguracionFormasDivertidas
+  | ConfiguracionDondeEstaOsito;
 
 type Props = {
   juego: Juego;
@@ -60,8 +64,22 @@ export default function EjecutarJuego({
             onFinalizar={onFinalizar}
         />
         ),
-    "Formas Divertidas": <FormasDivertidas {...propsBasicos} />,
-    "¿Dónde está el Osito?": <DondeEstaOsito {...propsBasicos} />,
+    "Formas Divertidas": (
+        <FormasDivertidas
+            configuracion={
+            configuracionPersonalizada as ConfiguracionFormasDivertidas | undefined
+            }
+            onFinalizar={onFinalizar}
+        />
+        ),
+    "¿Dónde está el Osito?": (
+        <DondeEstaOsito
+            configuracion={
+            configuracionPersonalizada as ConfiguracionDondeEstaOsito | undefined
+            }
+            onFinalizar={onFinalizar}
+        />
+        ),
     "Caritas Felices": <CaritasFelices {...propsBasicos} />,
     "Cuenta Conmigo": <CuentaConmigo {...propsBasicos} />,
     "Memoria Visual": <MemoriaVisual {...propsBasicos} />,

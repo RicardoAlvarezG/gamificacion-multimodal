@@ -1,48 +1,51 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { ConfiguracionDondeEstaOsito } from "@/components/personalizacion-juegos/PersonalizarDondeEstaOsito";
 
 type Ubicacion = "arriba" | "abajo";
 
 type Ronda = {
   nombre: string;
+  archivo: string;
   imagen: string;
   respuesta: Ubicacion;
 };
 
 type Props = {
   onFinalizar: () => void;
+  configuracion?: ConfiguracionDondeEstaOsito;
 };
 
-const rondasBase: Ronda[] = [
+const escenariosBase: Omit<Ronda, "imagen">[] = [
   {
     nombre: "Sobre la mesa",
-    imagen: "/juegos/osito/sobremesa.webp",
+    archivo: "sobremesa",
     respuesta: "arriba",
   },
   {
     nombre: "Bajo la mesa",
-    imagen: "/juegos/osito/bajomesa.webp",
+    archivo: "bajomesa",
     respuesta: "abajo",
   },
   {
     nombre: "Sobre la silla",
-    imagen: "/juegos/osito/sobresilla.webp",
+    archivo: "sobresilla",
     respuesta: "arriba",
   },
   {
     nombre: "Bajo la silla",
-    imagen: "/juegos/osito/bajosilla.webp",
+    archivo: "bajosilla",
     respuesta: "abajo",
   },
   {
     nombre: "Sobre la cama",
-    imagen: "/juegos/osito/sobrecama.webp",
+    archivo: "sobrecama",
     respuesta: "arriba",
   },
   {
     nombre: "Bajo la cama",
-    imagen: "/juegos/osito/bajocama.webp",
+    archivo: "bajocama",
     respuesta: "abajo",
   },
 ];
@@ -50,18 +53,36 @@ const rondasBase: Ronda[] = [
 const opciones: { nombre: Ubicacion; imagen: string }[] = [
   {
     nombre: "arriba",
-    imagen: "/juegos/osito/arriba.webp",
+    imagen: "/juegos/donde-esta/arriba.webp",
   },
   {
     nombre: "abajo",
-    imagen: "/juegos/osito/abajo.webp",
+    imagen: "/juegos/donde-esta/abajo.webp",
   },
 ];
 
-export default function DondeEstaOsito({ onFinalizar }: Props) {
+export default function DondeEstaOsito({
+  onFinalizar,
+  configuracion,
+}: Props) {
+  const objeto = configuracion?.objeto || "osito";
+
   const rondas = useMemo(() => {
-    return [...rondasBase].sort(() => Math.random() - 0.5);
-  }, []);
+    const escenariosSeleccionados =
+      configuracion?.escenarios && configuracion.escenarios.length > 0
+        ? configuracion.escenarios
+        : escenariosBase.map((escenario) => escenario.archivo);
+
+    return escenariosBase
+      .filter((escenario) =>
+        escenariosSeleccionados.includes(escenario.archivo)
+      )
+      .map((escenario) => ({
+        ...escenario,
+        imagen: `/juegos/donde-esta/${objeto}/${escenario.archivo}.webp`,
+      }))
+      .sort(() => Math.random() - 0.5);
+  }, [configuracion, objeto]);
 
   const [rondaActual, setRondaActual] = useState(0);
   const [mensaje, setMensaje] = useState("");
@@ -113,7 +134,7 @@ export default function DondeEstaOsito({ onFinalizar }: Props) {
 
         <div className="text-center mb-6">
           <span className="inline-block bg-purple-100 text-purple-700 px-6 py-3 rounded-full font-bold text-xl">
-            Ronda {rondaActual + 1} de 6
+            Ronda {rondaActual + 1} de {rondas.length}
           </span>
         </div>
 
@@ -121,7 +142,7 @@ export default function DondeEstaOsito({ onFinalizar }: Props) {
           <>
             <div className="bg-purple-50 rounded-3xl p-6 mb-8">
               <h3 className="text-center text-3xl font-bold text-purple-700 mb-5">
-                ¿Dónde está el osito?
+                ¿Dónde está?
               </h3>
 
               <div className="flex justify-center">
