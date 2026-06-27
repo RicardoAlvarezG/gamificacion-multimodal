@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { ConfiguracionClasificaAgrupa } from "@/components/personalizacion-juegos/PersonalizarClasificaAgrupa";
 
-type RondaColor = {
-  tipo: "color";
+type RondaMultiple = {
+  tipo: "color" | "forma";
   titulo: string;
   correctas: string[];
   distractores: string[];
@@ -16,115 +17,177 @@ type RondaTamano = {
   incorrecta: string;
 };
 
-type Ronda = RondaColor | RondaTamano;
+type Ronda = RondaMultiple | RondaTamano;
 
 type Props = {
   onFinalizar: () => void;
+  configuracion?: ConfiguracionClasificaAgrupa;
 };
 
-const rondasColorBase: RondaColor[] = [
-  {
-    tipo: "color",
-    titulo: "Selecciona los objetos de color rojo",
-    correctas: [
-      "/juegos/clasifica/colorrojo1.webp",
-      "/juegos/clasifica/colorrojo2.webp",
-      "/juegos/clasifica/colorrojo3.webp",
-    ],
-    distractores: [
-      "/juegos/clasifica/colorazul1.webp",
-      "/juegos/clasifica/colorverde1.webp",
-      "/juegos/clasifica/colornaranja1.webp",
-    ],
-  },
-  {
-    tipo: "color",
-    titulo: "Selecciona los objetos de color azul",
-    correctas: [
-      "/juegos/clasifica/colorazul1.webp",
-      "/juegos/clasifica/colorazul2.webp",
-      "/juegos/clasifica/colorazul3.webp",
-    ],
-    distractores: [
-      "/juegos/clasifica/colorrojo1.webp",
-      "/juegos/clasifica/colorverde2.webp",
-      "/juegos/clasifica/colornaranja2.webp",
-    ],
-  },
-  {
-    tipo: "color",
-    titulo: "Selecciona los objetos de color verde",
-    correctas: [
-      "/juegos/clasifica/colorverde1.webp",
-      "/juegos/clasifica/colorverde2.webp",
-      "/juegos/clasifica/colorverde3.webp",
-    ],
-    distractores: [
-      "/juegos/clasifica/colorrojo2.webp",
-      "/juegos/clasifica/colorazul2.webp",
-      "/juegos/clasifica/colornaranja3.webp",
-    ],
-  },
-  {
-    tipo: "color",
-    titulo: "Selecciona los objetos de color naranja",
-    correctas: [
-      "/juegos/clasifica/colornaranja1.webp",
-      "/juegos/clasifica/colornaranja2.webp",
-      "/juegos/clasifica/colornaranja3.webp",
-    ],
-    distractores: [
-      "/juegos/clasifica/colorrojo3.webp",
-      "/juegos/clasifica/colorazul3.webp",
-      "/juegos/clasifica/colorverde3.webp",
-    ],
-  },
-];
+const coloresTexto: Record<string, string> = {
+  ROJO: "rojo",
+  AZUL: "azul",
+  VERDE: "verde",
+  NARANJA: "naranja",
+  AMARILLO: "amarillo",
+  MORADO: "morado",
+  ROSADO: "rosado",
+};
 
-const rondasTamanoBase: RondaTamano[] = [
-  {
-    tipo: "tamano",
-    titulo: "Selecciona el oso grande",
-    correcta: "/juegos/clasifica/osogrande.webp",
-    incorrecta: "/juegos/clasifica/osopequeño.webp",
-  },
-  {
-    tipo: "tamano",
-    titulo: "Selecciona el carro grande",
-    correcta: "/juegos/clasifica/carrogrande.webp",
-    incorrecta: "/juegos/clasifica/carropequeño.webp",
-  },
-  {
-    tipo: "tamano",
-    titulo: "Selecciona la manzana grande",
-    correcta: "/juegos/clasifica/manzanagrande.webp",
-    incorrecta: "/juegos/clasifica/manzanapequeña.webp",
-  },
-  {
-    tipo: "tamano",
-    titulo: "Selecciona el barco grande",
-    correcta: "/juegos/clasifica/barcogrande.webp",
-    incorrecta: "/juegos/clasifica/barcopequeño.webp",
-  },
-  {
-    tipo: "tamano",
-    titulo: "Selecciona la pelota grande",
-    correcta: "/juegos/clasifica/pelotagrande.webp",
-    incorrecta: "/juegos/clasifica/pelotapequeña.webp",
-  },
-];
+const formasTexto: Record<string, string> = {
+  CIRCULO: "círculos",
+  CUADRADO: "cuadrados",
+  TRIANGULO: "triángulos",
+  RECTANGULO: "rectángulos",
+  ROMBO: "rombos",
+  OVALO: "óvalos",
+  ESTRELLA: "estrellas",
+  PENTAGONO: "pentágonos",
+  HEXAGONO: "hexágonos",
+  OCTOGONO: "octógonos",
+};
+
+const objetosTexto: Record<string, string> = {
+  BARCO: "barco",
+  CARRO: "carro",
+  MANZANA: "manzana",
+  OSO: "oso",
+  PELOTA: "pelota",
+  CASA: "casa",
+  LIBRO: "libro",
+  ARBOL: "árbol",
+  FLOR: "flor",
+  LAPIZ: "lápiz",
+};
+
+const objetosArchivo: Record<string, string> = {
+  BARCO: "barco",
+  CARRO: "carro",
+  MANZANA: "manzana",
+  OSO: "oso",
+  PELOTA: "pelota",
+  CASA: "casa",
+  LIBRO: "libro",
+  ARBOL: "arbol",
+  FLOR: "flor",
+  LAPIZ: "lapiz",
+};
 
 function mezclar<T>(array: T[]) {
   return [...array].sort(() => Math.random() - 0.5);
 }
 
-export default function ClasificaAgrupa({ onFinalizar }: Props) {
-  const rondas = useMemo<Ronda[]>(() => {
-    const colores = mezclar(rondasColorBase).slice(0, 2);
-    const tamanos = mezclar(rondasTamanoBase).slice(0, 2);
+function crearRondaColor(color: string, coloresDisponibles: string[]): RondaMultiple {
+  const colorNombre = coloresTexto[color];
 
-    return [...colores, ...tamanos];
-  }, []);
+  const correctas = [1, 2, 3].map(
+    (numero) => `/juegos/clasifica/color${colorNombre}${numero}.webp`
+  );
+
+  const distractores = mezclar(
+    coloresDisponibles
+      .filter((item) => item !== color)
+      .flatMap((otroColor) =>
+        [1, 2, 3].map(
+          (numero) => `/juegos/clasifica/color${coloresTexto[otroColor]}${numero}.webp`
+        )
+      )
+  ).slice(0, 3);
+
+  return {
+    tipo: "color",
+    titulo: `Selecciona los objetos de color ${colorNombre}`,
+    correctas,
+    distractores,
+  };
+}
+
+function crearRondaForma(
+  forma: string,
+  formasDisponibles: string[],
+  coloresDisponibles: string[]
+): RondaMultiple {
+  const formaArchivo = forma.toLowerCase();
+  const coloresParaForma = mezclar(coloresDisponibles).slice(0, 3);
+
+  const correctas = coloresParaForma.map(
+    (color) => `/juegos/clasifica/${formaArchivo}${coloresTexto[color]}.webp`
+  );
+
+  const distractores = mezclar(
+    formasDisponibles
+      .filter((item) => item !== forma)
+      .flatMap((otraForma) =>
+        mezclar(coloresDisponibles)
+          .slice(0, 2)
+          .map(
+            (color) =>
+              `/juegos/clasifica/${otraForma.toLowerCase()}${coloresTexto[color]}.webp`
+          )
+      )
+  ).slice(0, 3);
+
+  return {
+    tipo: "forma",
+    titulo: `Selecciona todos los ${formasTexto[forma]}`,
+    correctas,
+    distractores,
+  };
+}
+
+function crearRondaTamano(objeto: string): RondaTamano {
+  const archivo = objetosArchivo[objeto];
+  const nombre = objetosTexto[objeto];
+
+  return {
+    tipo: "tamano",
+    titulo: `Selecciona el ${nombre} grande`,
+    correcta: `/juegos/clasifica/${archivo}grande.webp`,
+    incorrecta: `/juegos/clasifica/${archivo}pequeño.webp`,
+  };
+}
+
+export default function ClasificaAgrupa({
+  onFinalizar,
+  configuracion,
+}: Props) {
+  const rondas = useMemo<Ronda[]>(() => {
+    if (!configuracion) {
+      return [
+        crearRondaColor("ROJO", ["ROJO", "AZUL", "VERDE", "NARANJA"]),
+        crearRondaColor("AZUL", ["ROJO", "AZUL", "VERDE", "NARANJA"]),
+        crearRondaTamano("OSO"),
+        crearRondaTamano("CARRO"),
+      ];
+    }
+
+    const nuevasRondas: Ronda[] = [];
+
+    if (configuracion.categorias.includes("COLOR")) {
+      const color = mezclar(configuracion.colores)[0];
+      nuevasRondas.push(crearRondaColor(color, configuracion.colores));
+    }
+
+    if (configuracion.categorias.includes("FORMA")) {
+      const forma = mezclar(configuracion.formas)[0];
+      nuevasRondas.push(
+        crearRondaForma(
+          forma,
+          configuracion.formas,
+          configuracion.colores.length > 0
+            ? configuracion.colores
+            : ["ROJO", "AZUL", "VERDE", "NARANJA"]
+        )
+      );
+    }
+
+    if (configuracion.categorias.includes("TAMANO")) {
+      const objeto = mezclar(configuracion.objetosTamano)[0];
+      nuevasRondas.push(crearRondaTamano(objeto));
+    }
+
+    return nuevasRondas;
+  }, [configuracion]);
 
   const [rondaActual, setRondaActual] = useState(0);
   const [seleccionadas, setSeleccionadas] = useState<string[]>([]);
@@ -133,8 +196,8 @@ export default function ClasificaAgrupa({ onFinalizar }: Props) {
 
   const ronda = rondas[rondaActual];
 
-  const opcionesColor = useMemo(() => {
-    if (!ronda || ronda.tipo !== "color") return [];
+  const opcionesMultiple = useMemo(() => {
+    if (!ronda || (ronda.tipo !== "color" && ronda.tipo !== "forma")) return [];
 
     return mezclar([
       ...ronda.correctas.map((imagen) => ({
@@ -177,8 +240,13 @@ export default function ClasificaAgrupa({ onFinalizar }: Props) {
     }, 1200);
   };
 
-  const seleccionarColor = (imagen: string, correcta: boolean) => {
-    if (bloqueado || !ronda || ronda.tipo !== "color") return;
+  const seleccionarMultiple = (imagen: string, correcta: boolean) => {
+    if (
+      bloqueado ||
+      !ronda ||
+      (ronda.tipo !== "color" && ronda.tipo !== "forma")
+    )
+      return;
 
     if (!correcta) {
       setMensaje("😊 Sigamos intentando");
@@ -190,7 +258,7 @@ export default function ClasificaAgrupa({ onFinalizar }: Props) {
     const nuevasSeleccionadas = [...seleccionadas, imagen];
     setSeleccionadas(nuevasSeleccionadas);
 
-    if (nuevasSeleccionadas.length === 3) {
+    if (nuevasSeleccionadas.length === ronda.correctas.length) {
       setBloqueado(true);
       setMensaje("🎉 ¡Muy bien!");
       avanzarRonda();
@@ -238,26 +306,24 @@ export default function ClasificaAgrupa({ onFinalizar }: Props) {
                 {ronda.titulo}
               </h3>
 
-              {ronda.tipo === "color" && (
+              {(ronda.tipo === "color" || ronda.tipo === "forma") && (
                 <p className="text-center text-purple-600 text-xl font-bold mt-3">
-                  Selecciona 3 objetos correctos
+                  Selecciona {ronda.correctas.length} objetos correctos
                 </p>
               )}
             </div>
 
-            {ronda.tipo === "color" && (
+            {(ronda.tipo === "color" || ronda.tipo === "forma") && (
               <div className="grid grid-cols-2 md:grid-cols-3 gap-7">
-                {opcionesColor.map((opcion) => {
-                  const estaSeleccionada = seleccionadas.includes(
-                    opcion.imagen
-                  );
+                {opcionesMultiple.map((opcion) => {
+                  const estaSeleccionada = seleccionadas.includes(opcion.imagen);
 
                   return (
                     <button
                       key={opcion.imagen}
                       type="button"
                       onClick={() =>
-                        seleccionarColor(opcion.imagen, opcion.correcta)
+                        seleccionarMultiple(opcion.imagen, opcion.correcta)
                       }
                       disabled={bloqueado}
                       className={`rounded-[2rem] p-6 border-4 shadow-lg transition-all hover:scale-105 ${

@@ -21,6 +21,10 @@ import PersonalizarCaritasFelices, {
   type ConfiguracionCaritasFelices,
 } from "./PersonalizarCaritasFelices";
 
+import PersonalizarClasificaAgrupa, {
+  type ConfiguracionClasificaAgrupa,
+} from "./PersonalizarClasificaAgrupa";
+
 type Juego = {
   nombre: string;
 };
@@ -30,7 +34,8 @@ type ConfiguracionJuego =
   | ConfiguracionSonidosAnimales
   | ConfiguracionFormasDivertidas
   | ConfiguracionDondeEstaOsito
-  | ConfiguracionCaritasFelices;
+  | ConfiguracionCaritasFelices
+  | ConfiguracionClasificaAgrupa;
 
 type Props = {
   juego: Juego | null;
@@ -96,13 +101,23 @@ export default function PersonalizarJuegoModal({
     />
     ),
 
+    "Clasifica y Agrupa": (
+    <PersonalizarClasificaAgrupa
+        configuracionInicial={
+        configuracionInicial as ConfiguracionClasificaAgrupa | undefined
+        }
+        onGuardar={onGuardar}
+        onCancelar={onCerrar}
+    />
+    ),
+
   };
 
   const formulario = formularios[juego.nombre];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-6">
-      <div className="w-full max-w-xl rounded-[2rem] bg-white p-8 shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 p-6 overflow-y-auto">
+  <div className="w-full max-w-xl rounded-[2rem] bg-white p-8 shadow-2xl my-8">
         <h2 className="mb-2 text-3xl font-extrabold text-purple-700">
           ⚙ Personalizar juego
         </h2>

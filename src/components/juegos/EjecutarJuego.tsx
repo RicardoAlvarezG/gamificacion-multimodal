@@ -25,6 +25,7 @@ import type { ConfiguracionSonidosAnimales } from "@/components/personalizacion-
 import type { ConfiguracionFormasDivertidas } from "@/components/personalizacion-juegos/PersonalizarFormasDivertidas";
 import type { ConfiguracionDondeEstaOsito } from "@/components/personalizacion-juegos/PersonalizarDondeEstaOsito";
 import type { ConfiguracionCaritasFelices } from "@/components/personalizacion-juegos/PersonalizarCaritasFelices";
+import type { ConfiguracionClasificaAgrupa } from "@/components/personalizacion-juegos/PersonalizarClasificaAgrupa";
 
 type Juego = {
   nombre: string;
@@ -34,7 +35,8 @@ type ConfiguracionJuego =
   | ConfiguracionSonidosAnimales
   | ConfiguracionFormasDivertidas
   | ConfiguracionDondeEstaOsito
-  | ConfiguracionCaritasFelices;
+  | ConfiguracionCaritasFelices
+  | ConfiguracionClasificaAgrupa;
 
 type Props = {
   juego: Juego;
@@ -90,6 +92,14 @@ export default function EjecutarJuego({
             onFinalizar={onFinalizar}
         />
         ),
+    "Clasifica y Agrupa": (
+        <ClasificaAgrupa
+            configuracion={
+            configuracionPersonalizada as ConfiguracionClasificaAgrupa | undefined
+            }
+            onFinalizar={onFinalizar}
+        />
+        ),
     "Cuenta Conmigo": <CuentaConmigo {...propsBasicos} />,
     "Memoria Visual": <MemoriaVisual {...propsBasicos} />,
     "Figuras y Posiciones": <FigurasPosiciones {...propsBasicos} />,
@@ -101,7 +111,6 @@ export default function EjecutarJuego({
     "Rompecabezas Inteligente": <RompecabezasInteligente {...propsBasicos} />,
     "Emociones en Acción": <EmocionesAccion {...propsBasicos} />,
     "Las Vocales Perdidas": <LasVocalesPerdidas {...propsBasicos} />,
-    "Clasifica y Agrupa": <ClasificaAgrupa {...propsBasicos} />,
     "Pequeños Retos": <ElIntruso {...propsBasicos} />,
   };
 
