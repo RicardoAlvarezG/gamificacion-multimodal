@@ -17,6 +17,10 @@ import PersonalizarDondeEstaOsito, {
   type ConfiguracionDondeEstaOsito,
 } from "./PersonalizarDondeEstaOsito";
 
+import PersonalizarCaritasFelices, {
+  type ConfiguracionCaritasFelices,
+} from "./PersonalizarCaritasFelices";
+
 type Juego = {
   nombre: string;
 };
@@ -25,7 +29,8 @@ type ConfiguracionJuego =
   | ConfiguracionColoresMagicos
   | ConfiguracionSonidosAnimales
   | ConfiguracionFormasDivertidas
-  | ConfiguracionDondeEstaOsito;
+  | ConfiguracionDondeEstaOsito
+  | ConfiguracionCaritasFelices;
 
 type Props = {
   juego: Juego | null;
@@ -76,6 +81,15 @@ export default function PersonalizarJuegoModal({
     <PersonalizarDondeEstaOsito
         configuracionInicial={
         configuracionInicial as ConfiguracionDondeEstaOsito | undefined
+        }
+        onGuardar={onGuardar}
+        onCancelar={onCerrar}
+    />
+    ),
+    "Caritas Felices": (
+    <PersonalizarCaritasFelices
+        configuracionInicial={
+        configuracionInicial as ConfiguracionCaritasFelices | undefined
         }
         onGuardar={onGuardar}
         onCancelar={onCerrar}
