@@ -10,6 +10,7 @@ import type { ConfiguracionFormasDivertidas } from "@/components/personalizacion
 import type { ConfiguracionDondeEstaOsito } from "@/components/personalizacion-juegos/PersonalizarDondeEstaOsito";
 import type { ConfiguracionCaritasFelices } from "@/components/personalizacion-juegos/PersonalizarCaritasFelices";
 import type { ConfiguracionClasificaAgrupa } from "@/components/personalizacion-juegos/PersonalizarClasificaAgrupa";
+import type { ConfiguracionVocalesPerdidas } from "@/components/personalizacion-juegos/PersonalizarVocalesPerdidas";
 
 type Aula = {
   id: number;
@@ -55,7 +56,8 @@ type ConfiguracionJuego =
   | ConfiguracionFormasDivertidas
   | ConfiguracionDondeEstaOsito
   | ConfiguracionCaritasFelices
-  | ConfiguracionClasificaAgrupa;
+  | ConfiguracionClasificaAgrupa
+  | ConfiguracionVocalesPerdidas;
   
 
 type ConfiguracionesPersonalizadas = Partial<

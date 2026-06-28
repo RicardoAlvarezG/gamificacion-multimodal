@@ -25,6 +25,10 @@ import PersonalizarClasificaAgrupa, {
   type ConfiguracionClasificaAgrupa,
 } from "./PersonalizarClasificaAgrupa";
 
+import PersonalizarVocalesPerdidas, {
+  type ConfiguracionVocalesPerdidas,
+} from "./PersonalizarVocalesPerdidas";
+
 type Juego = {
   nombre: string;
 };
@@ -35,7 +39,8 @@ type ConfiguracionJuego =
   | ConfiguracionFormasDivertidas
   | ConfiguracionDondeEstaOsito
   | ConfiguracionCaritasFelices
-  | ConfiguracionClasificaAgrupa;
+  | ConfiguracionClasificaAgrupa
+  | ConfiguracionVocalesPerdidas;
 
 type Props = {
   juego: Juego | null;
@@ -105,6 +110,16 @@ export default function PersonalizarJuegoModal({
     <PersonalizarClasificaAgrupa
         configuracionInicial={
         configuracionInicial as ConfiguracionClasificaAgrupa | undefined
+        }
+        onGuardar={onGuardar}
+        onCancelar={onCerrar}
+    />
+    ),
+
+    "Las Vocales Perdidas": (
+    <PersonalizarVocalesPerdidas
+        configuracionInicial={
+        configuracionInicial as ConfiguracionVocalesPerdidas | undefined
         }
         onGuardar={onGuardar}
         onCancelar={onCerrar}
