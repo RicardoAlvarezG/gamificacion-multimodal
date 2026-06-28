@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { ConfiguracionFigurasPosiciones } from "../personalizacion-juegos/PersonalizarFigurasPosiciones";
 
 type Zona = {
   x: number;
@@ -16,16 +17,19 @@ type Pregunta = {
 };
 
 type Escena = {
+  id: string;
   imagen: string;
   preguntas: Pregunta[];
 };
 
 type Props = {
   onFinalizar: () => void;
+  configuracion?: ConfiguracionFigurasPosiciones;
 };
 
 const escenas: Escena[] = [
   {
+    id: "escena1",
     imagen: "/juegos/figuras-posiciones/escena1.webp",
     preguntas: [
       {
@@ -46,6 +50,7 @@ const escenas: Escena[] = [
     ],
   },
   {
+    id: "escena2",
     imagen: "/juegos/figuras-posiciones/escena2.webp",
     preguntas: [
       {
@@ -66,6 +71,7 @@ const escenas: Escena[] = [
     ],
   },
   {
+    id: "escena3",
     imagen: "/juegos/figuras-posiciones/escena3.webp",
     preguntas: [
       {
@@ -86,6 +92,7 @@ const escenas: Escena[] = [
     ],
   },
   {
+    id: "escena4",
     imagen: "/juegos/figuras-posiciones/escena4.webp",
     preguntas: [
       {
@@ -111,15 +118,34 @@ function mezclar<T>(array: T[]) {
   return [...array].sort(() => Math.random() - 0.5);
 }
 
-export default function FigurasPosiciones({ onFinalizar }: Props) {
+export default function FigurasPosiciones({
+  onFinalizar,
+  configuracion,
+}: Props) {
+  const escenasJuego = useMemo(() => {
+    if (!configuracion) {
+      return escenas;
+    }
+
+    const seleccionadas = escenas.filter((escena) =>
+      configuracion.escenas.includes(escena.id)
+    );
+
+    return seleccionadas.length > 0 ? seleccionadas : escenas;
+  }, [configuracion]);
+
+  const totalRondas = configuracion?.rondas ?? 3;
+
   const rondas = useMemo(() => {
-    return mezclar(escenas)
-      .slice(0, 3)
-      .map((escena) => ({
+    return Array.from({ length: totalRondas }).map((_, index) => {
+      const escena = mezclar(escenasJuego)[index % escenasJuego.length];
+
+      return {
         ...escena,
         preguntaActual: mezclar(escena.preguntas)[0],
-      }));
-  }, []);
+      };
+    });
+  }, [escenasJuego, totalRondas]);
 
   const [rondaActual, setRondaActual] = useState(0);
   const [mensaje, setMensaje] = useState("");
@@ -167,6 +193,7 @@ export default function FigurasPosiciones({ onFinalizar }: Props) {
         <h2 className="text-3xl font-black text-purple-700">
           Figuras y Posiciones
         </h2>
+
         <p className="text-lg font-bold text-gray-600">
           Ronda {rondaActual + 1} de {rondas.length}
         </p>
@@ -177,6 +204,7 @@ export default function FigurasPosiciones({ onFinalizar }: Props) {
           <p className="text-2xl font-black text-orange-500">
             {ronda.preguntaActual.pregunta}
           </p>
+
           <p className="text-sm font-semibold text-gray-500">
             Haz clic en la imagen correcta
           </p>

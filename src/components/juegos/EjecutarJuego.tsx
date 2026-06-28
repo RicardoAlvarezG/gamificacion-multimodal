@@ -28,6 +28,9 @@ import type { ConfiguracionCaritasFelices } from "@/components/personalizacion-j
 import type { ConfiguracionClasificaAgrupa } from "@/components/personalizacion-juegos/PersonalizarClasificaAgrupa";
 import type { ConfiguracionVocalesPerdidas } from "../personalizacion-juegos/PersonalizarVocalesPerdidas";
 import type { ConfiguracionCuentaConmigo } from "../personalizacion-juegos/PersonalizarCuentaConmigo";
+import type { ConfiguracionMemoriaVisual } from "@/components/personalizacion-juegos/PersonalizarMemoriaVisual";
+import type { ConfiguracionFigurasPosiciones } from "../personalizacion-juegos/PersonalizarFigurasPosiciones";
+import type { ConfiguracionRutinasDiarias } from "../personalizacion-juegos/PersonalizarRutinasDiarias";
 
 type Juego = {
   nombre: string;
@@ -40,7 +43,11 @@ type ConfiguracionJuego =
   | ConfiguracionCaritasFelices
   | ConfiguracionClasificaAgrupa
   | ConfiguracionVocalesPerdidas
-  | ConfiguracionCuentaConmigo;
+  | ConfiguracionCuentaConmigo
+  | ConfiguracionMemoriaVisual
+  | ConfiguracionFigurasPosiciones
+  | ConfiguracionRutinasDiarias
+  
 
 type Props = {
   juego: Juego;
@@ -121,9 +128,36 @@ export default function EjecutarJuego({
         />
         ),
 
-    "Memoria Visual": <MemoriaVisual {...propsBasicos} />,
-    "Figuras y Posiciones": <FigurasPosiciones {...propsBasicos} />,
-    "Rutinas Diarias": <RutinasDiarias {...propsBasicos} />,
+    "Memoria Visual": (
+        <MemoriaVisual
+            configuracion={
+            configuracionPersonalizada as ConfiguracionMemoriaVisual | undefined
+            }
+            onFinalizar={onFinalizar}
+        />
+        ),
+
+    
+    "Figuras y Posiciones": (
+        <FigurasPosiciones
+            configuracion={
+            configuracionPersonalizada as
+                | ConfiguracionFigurasPosiciones
+                | undefined
+            }
+            onFinalizar={onFinalizar}
+        />
+        ),
+    "Rutinas Diarias": (
+        <RutinasDiarias
+            configuracion={
+            configuracionPersonalizada as
+                | ConfiguracionRutinasDiarias
+                | undefined
+            }
+            onFinalizar={onFinalizar}
+        />
+        ),
     "Trabajemos Juntos": <TrabajemosJuntos {...propsBasicos} />,
     "Construye Palabras": <ConstruyePalabras {...propsBasicos} />,
     "Secuencias Divertidas": <SecuenciasDivertidas {...propsBasicos} />,

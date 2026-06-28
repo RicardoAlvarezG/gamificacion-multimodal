@@ -1,11 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { ConfiguracionRutinasDiarias } from "../personalizacion-juegos/PersonalizarRutinasDiarias";
 
 type Paso = {
   id: string;
   texto: string;
   imagen: string;
+  pregunta?: string;
 };
 
 type Rutina = {
@@ -18,6 +20,7 @@ type Rutina = {
 
 type Props = {
   onFinalizar: () => void;
+  configuracion?: ConfiguracionRutinasDiarias;
 };
 
 const rutinas: Rutina[] = [
@@ -69,20 +72,45 @@ function mezclar<T>(array: T[]) {
   return [...array].sort(() => Math.random() - 0.5);
 }
 
-export default function RutinasDiarias({ onFinalizar }: Props) {
-  const rutinasMezcladas = useMemo(() => mezclar(rutinas), []);
+function crearRutinaPersonalizada(
+  configuracion: ConfiguracionRutinasDiarias
+): Rutina {
+  const rutinaBase =
+    rutinas.find((rutina) => rutina.id === configuracion.rutinaId) ??
+    rutinas[0];
+
+  return {
+    ...rutinaBase,
+    pasos: configuracion.pasos.map((paso) => ({
+      id: paso.id,
+      texto: paso.texto,
+      imagen: paso.imagen,
+      pregunta: paso.pregunta,
+    })),
+  };
+}
+
+export default function RutinasDiarias({
+  onFinalizar,
+  configuracion,
+}: Props) {
+  const rutinasJuego = useMemo(() => {
+    if (!configuracion) {
+      return mezclar(rutinas);
+    }
+
+    return [crearRutinaPersonalizada(configuracion)];
+  }, [configuracion]);
 
   const [rondaActual, setRondaActual] = useState(0);
   const [pasoActual, setPasoActual] = useState(0);
   const [ordenSeleccionado, setOrdenSeleccionado] = useState<Paso[]>([]);
-  const [opciones, setOpciones] = useState<Paso[]>(
-    mezclar(rutinasMezcladas[0].pasos)
-  );
+  const [opciones, setOpciones] = useState<Paso[]>(mezclar(rutinasJuego[0].pasos));
   const [mensaje, setMensaje] = useState("Ordena la rutina en el orden correcto");
   const [tarjetaError, setTarjetaError] = useState<string | null>(null);
   const [completado, setCompletado] = useState(false);
 
-  const rutina = rutinasMezcladas[rondaActual];
+  const rutina = rutinasJuego[rondaActual];
   const pasoEsperado = rutina.pasos[pasoActual];
 
   const seleccionarPaso = (paso: Paso) => {
@@ -96,12 +124,12 @@ export default function RutinasDiarias({ onFinalizar }: Props) {
 
       if (nuevoOrden.length === rutina.pasos.length) {
         setTimeout(() => {
-          if (rondaActual + 1 < rutinasMezcladas.length) {
+          if (rondaActual + 1 < rutinasJuego.length) {
             const siguienteRonda = rondaActual + 1;
             setRondaActual(siguienteRonda);
             setPasoActual(0);
             setOrdenSeleccionado([]);
-            setOpciones(mezclar(rutinasMezcladas[siguienteRonda].pasos));
+            setOpciones(mezclar(rutinasJuego[siguienteRonda].pasos));
             setMensaje("Ordena la siguiente rutina");
           } else {
             setCompletado(true);
@@ -126,9 +154,11 @@ export default function RutinasDiarias({ onFinalizar }: Props) {
     return (
       <div className="w-full rounded-3xl bg-gradient-to-br from-green-100 via-yellow-100 to-pink-100 p-8 text-center shadow-xl">
         <div className="text-7xl mb-4">🏆</div>
+
         <h2 className="text-4xl font-black text-purple-700 mb-3">
           ¡Excelente!
         </h2>
+
         <p className="text-xl font-bold text-gray-700 mb-8">
           Completaste todas las rutinas del día.
         </p>
@@ -151,8 +181,9 @@ export default function RutinasDiarias({ onFinalizar }: Props) {
             <h2 className="text-3xl font-black text-purple-700">
               {rutina.emoji} {rutina.titulo}
             </h2>
+
             <p className="text-lg font-bold text-gray-700">
-              Ronda {rondaActual + 1} de {rutinasMezcladas.length}
+              Ronda {rondaActual + 1} de {rutinasJuego.length}
             </p>
           </div>
 
@@ -166,8 +197,11 @@ export default function RutinasDiarias({ onFinalizar }: Props) {
 
         <div className="mt-4 rounded-2xl bg-white/80 p-4 text-center">
           <p className="text-2xl font-black text-gray-800">{mensaje}</p>
+
           <p className="mt-1 text-lg font-bold text-purple-700">
-            Ahora toca: {pasoEsperado.texto}
+            {pasoEsperado.pregunta
+              ? pasoEsperado.pregunta
+              : `Ahora toca: ${pasoEsperado.texto}`}
           </p>
         </div>
       </div>
@@ -193,6 +227,7 @@ export default function RutinasDiarias({ onFinalizar }: Props) {
                       alt={paso.texto}
                       className="mx-auto h-20 w-20 object-contain"
                     />
+
                     <p className="text-xs font-black text-gray-700">
                       {paso.texto}
                     </p>
@@ -231,6 +266,7 @@ export default function RutinasDiarias({ onFinalizar }: Props) {
                 alt={paso.texto}
                 className="mx-auto h-40 w-full object-contain"
               />
+
               <p className="mt-3 text-xl font-black text-gray-800">
                 {paso.texto}
               </p>

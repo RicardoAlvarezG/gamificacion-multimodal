@@ -33,6 +33,18 @@ import PersonalizarCuentaConmigo, {
   type ConfiguracionCuentaConmigo,
 } from "./PersonalizarCuentaConmigo";
 
+import PersonalizarMemoriaVisual, {
+  type ConfiguracionMemoriaVisual,
+} from "./PersonalizarMemoriaVisual";
+
+import PersonalizarFigurasPosiciones, {
+  type ConfiguracionFigurasPosiciones,
+} from "./PersonalizarFigurasPosiciones";
+
+import PersonalizarRutinasDiarias, {
+  type ConfiguracionRutinasDiarias,
+} from "./PersonalizarRutinasDiarias";
+
 type Juego = {
   nombre: string;
 };
@@ -45,7 +57,10 @@ type ConfiguracionJuego =
   | ConfiguracionCaritasFelices
   | ConfiguracionClasificaAgrupa
   | ConfiguracionVocalesPerdidas
-  | ConfiguracionCuentaConmigo;
+  | ConfiguracionCuentaConmigo
+  | ConfiguracionMemoriaVisual
+  | ConfiguracionFigurasPosiciones
+  | ConfiguracionRutinasDiarias;
 
 type Props = {
   juego: Juego | null;
@@ -139,6 +154,36 @@ export default function PersonalizarJuegoModal({
         onGuardar={onGuardar}
         onCancelar={onCerrar}
     />
+    ),
+
+    "Memoria Visual": (
+    <PersonalizarMemoriaVisual
+      configuracionInicial={
+        configuracionInicial as ConfiguracionMemoriaVisual | undefined
+      }
+      onGuardar={onGuardar}
+      onCancelar={onCerrar}
+    />
+    ),
+
+    "Figuras y Posiciones": (
+      <PersonalizarFigurasPosiciones
+        configuracionInicial={
+          configuracionInicial as ConfiguracionFigurasPosiciones | undefined
+        }
+        onGuardar={onGuardar}
+        onCancelar={onCerrar}
+      />
+    ),
+
+    "Rutinas Diarias": (
+      <PersonalizarRutinasDiarias
+        configuracionInicial={
+          configuracionInicial as ConfiguracionRutinasDiarias | undefined
+        }
+        onGuardar={onGuardar}
+        onCancelar={onCerrar}
+      />
     ),
 
   };

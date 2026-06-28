@@ -12,6 +12,9 @@ import type { ConfiguracionCaritasFelices } from "@/components/personalizacion-j
 import type { ConfiguracionClasificaAgrupa } from "@/components/personalizacion-juegos/PersonalizarClasificaAgrupa";
 import type { ConfiguracionVocalesPerdidas } from "@/components/personalizacion-juegos/PersonalizarVocalesPerdidas";
 import type { ConfiguracionCuentaConmigo } from "@/components/personalizacion-juegos/PersonalizarCuentaConmigo";
+import type { ConfiguracionMemoriaVisual } from "@/components/personalizacion-juegos/PersonalizarMemoriaVisual";
+import type { ConfiguracionFigurasPosiciones } from "@/components/personalizacion-juegos/PersonalizarFigurasPosiciones";
+import type { ConfiguracionRutinasDiarias } from "@/components/personalizacion-juegos/PersonalizarRutinasDiarias";
 
 type Aula = {
   id: number;
@@ -59,7 +62,10 @@ type ConfiguracionJuego =
   | ConfiguracionCaritasFelices
   | ConfiguracionClasificaAgrupa
   | ConfiguracionVocalesPerdidas
-  | ConfiguracionCuentaConmigo;
+  | ConfiguracionCuentaConmigo
+  | ConfiguracionMemoriaVisual
+  | ConfiguracionFigurasPosiciones
+  | ConfiguracionRutinasDiarias;
   
 
 type ConfiguracionesPersonalizadas = Partial<
