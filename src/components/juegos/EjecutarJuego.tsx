@@ -27,6 +27,7 @@ import type { ConfiguracionDondeEstaOsito } from "@/components/personalizacion-j
 import type { ConfiguracionCaritasFelices } from "@/components/personalizacion-juegos/PersonalizarCaritasFelices";
 import type { ConfiguracionClasificaAgrupa } from "@/components/personalizacion-juegos/PersonalizarClasificaAgrupa";
 import type { ConfiguracionVocalesPerdidas } from "../personalizacion-juegos/PersonalizarVocalesPerdidas";
+import type { ConfiguracionCuentaConmigo } from "../personalizacion-juegos/PersonalizarCuentaConmigo";
 
 type Juego = {
   nombre: string;
@@ -38,7 +39,8 @@ type ConfiguracionJuego =
   | ConfiguracionDondeEstaOsito
   | ConfiguracionCaritasFelices
   | ConfiguracionClasificaAgrupa
-  | ConfiguracionVocalesPerdidas;
+  | ConfiguracionVocalesPerdidas
+  | ConfiguracionCuentaConmigo;
 
 type Props = {
   juego: Juego;
@@ -110,7 +112,15 @@ export default function EjecutarJuego({
             onFinalizar={onFinalizar}
         />
         ),
-    "Cuenta Conmigo": <CuentaConmigo {...propsBasicos} />,
+    "Cuenta Conmigo": (
+        <CuentaConmigo
+            configuracion={
+            configuracionPersonalizada as ConfiguracionCuentaConmigo | undefined
+            }
+            onFinalizar={onFinalizar}
+        />
+        ),
+
     "Memoria Visual": <MemoriaVisual {...propsBasicos} />,
     "Figuras y Posiciones": <FigurasPosiciones {...propsBasicos} />,
     "Rutinas Diarias": <RutinasDiarias {...propsBasicos} />,

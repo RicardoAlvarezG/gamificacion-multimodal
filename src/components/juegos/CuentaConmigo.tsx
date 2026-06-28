@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { ConfiguracionCuentaConmigo } from "../personalizacion-juegos/PersonalizarCuentaConmigo";
 
 type Ficha = {
   objeto: string;
@@ -13,10 +14,57 @@ type Ronda = Ficha & {
 };
 
 type Props = {
+  configuracion?: ConfiguracionCuentaConmigo;
   onFinalizar: () => void;
 };
 
-const fichas: Ficha[] = [
+const objetosDisponibles = [
+  "auto",
+  "avion",
+  "balon",
+  "barco",
+  "conejo",
+  "flor",
+  "gato",
+  "helado",
+  "lapiz",
+  "libro",
+  "manzana",
+  "mariposa",
+  "oso",
+  "paleta",
+  "pelota",
+  "pez",
+  "pollo",
+  "sol",
+  "tren",
+  "vaca",
+];
+
+const nombresObjeto: Record<string, string> = {
+  auto: "autos",
+  avion: "aviones",
+  balon: "balones",
+  barco: "barcos",
+  conejo: "conejos",
+  flor: "flores",
+  gato: "gatos",
+  helado: "helados",
+  lapiz: "lápices",
+  libro: "libros",
+  manzana: "manzanas",
+  mariposa: "mariposas",
+  oso: "osos",
+  paleta: "paletas",
+  pelota: "pelotas",
+  pez: "peces",
+  pollo: "pollos",
+  sol: "soles",
+  tren: "trenes",
+  vaca: "vacas",
+};
+
+const fichasBase: Ficha[] = [
   { objeto: "patos", cantidad: 1, imagen: "/juegos/conteo/pato1.webp" },
   { objeto: "carros", cantidad: 1, imagen: "/juegos/conteo/carro1.webp" },
   { objeto: "árboles", cantidad: 1, imagen: "/juegos/conteo/arbol1.webp" },
@@ -50,30 +98,65 @@ const mezclar = <T,>(array: T[]) => {
   return [...array].sort(() => Math.random() - 0.5);
 };
 
-export default function CuentaConmigo({ onFinalizar }: Props) {
+const elegirAleatorio = <T,>(array: T[]) => {
+  return array[Math.floor(Math.random() * array.length)];
+};
+
+function crearOpciones(correcta: number) {
+  const opcionesIncorrectas = mezclar(
+    [1, 2, 3, 4, 5].filter((n) => n !== correcta)
+  ).slice(0, 2);
+
+  return mezclar([correcta, ...opcionesIncorrectas]);
+}
+
+function crearRondasPersonalizadas(
+  configuracion: ConfiguracionCuentaConmigo
+): Ronda[] {
+  return mezclar(configuracion.imagenes).map((imagen) => {
+    const cantidad = elegirAleatorio(configuracion.numeros);
+
+    return {
+      objeto: nombresObjeto[imagen] ?? imagen,
+      cantidad,
+      imagen: `/juegos/conteo/${imagen}.webp`,
+      opciones: crearOpciones(cantidad),
+    };
+  });
+}
+
+function crearRondasBase(): Ronda[] {
+  const numeros = mezclar([1, 2, 3, 4, 5]);
+
+  return numeros.map((numero) => {
+    const fichasDelNumero = fichasBase.filter(
+      (ficha) => ficha.cantidad === numero
+    );
+
+    const fichaElegida = elegirAleatorio(fichasDelNumero);
+
+    return {
+      ...fichaElegida,
+      opciones: crearOpciones(numero),
+    };
+  });
+}
+
+export default function CuentaConmigo({
+  configuracion,
+  onFinalizar,
+}: Props) {
   const rondas: Ronda[] = useMemo(() => {
-    const numeros = mezclar([1, 2, 3, 4, 5]);
+    if (
+      configuracion &&
+      configuracion.numeros.length > 0 &&
+      configuracion.imagenes.length > 0
+    ) {
+      return crearRondasPersonalizadas(configuracion);
+    }
 
-    return numeros.map((numero) => {
-      const fichasDelNumero = fichas.filter(
-        (ficha) => ficha.cantidad === numero
-      );
-
-      const fichaElegida =
-        fichasDelNumero[Math.floor(Math.random() * fichasDelNumero.length)];
-
-      const opcionesIncorrectas = mezclar(
-        [1, 2, 3, 4, 5].filter((n) => n !== numero)
-      ).slice(0, 2);
-
-      const opciones = mezclar([numero, ...opcionesIncorrectas]);
-
-      return {
-        ...fichaElegida,
-        opciones,
-      };
-    });
-  }, []);
+    return crearRondasBase();
+  }, [configuracion]);
 
   const [rondaActual, setRondaActual] = useState(0);
   const [mensaje, setMensaje] = useState("");
@@ -111,7 +194,7 @@ export default function CuentaConmigo({ onFinalizar }: Props) {
       </h2>
 
       <p className="text-base font-bold text-gray-700 mb-4">
-        Ronda {rondaActual + 1} de 5
+        Ronda {rondaActual + 1} de {rondas.length}
       </p>
 
       <div className="bg-white rounded-3xl shadow-xl p-6 w-full max-w-3xl flex flex-col items-center">
@@ -119,11 +202,16 @@ export default function CuentaConmigo({ onFinalizar }: Props) {
           ¿Cuántos {ronda.objeto} hay en la imagen?
         </h3>
 
-        <img
-          src={ronda.imagen}
-          alt={`Imagen con ${ronda.cantidad} ${ronda.objeto}`}
-          className="w-full max-w-md h-[360px] object-contain rounded-2xl mb-6"
-        />
+        <div className="w-full max-w-md min-h-[320px] rounded-2xl mb-6 bg-yellow-50 border-4 border-dashed border-yellow-300 p-5 grid grid-cols-3 gap-4 place-items-center">
+          {Array.from({ length: ronda.cantidad }).map((_, index) => (
+            <img
+              key={`${ronda.imagen}-${index}`}
+              src={ronda.imagen}
+              alt={ronda.objeto}
+              className="h-24 w-24 object-contain"
+            />
+          ))}
+        </div>
 
         <div className="grid grid-cols-3 gap-5 w-full max-w-xl">
           {ronda.opciones.map((opcion) => (

@@ -29,6 +29,10 @@ import PersonalizarVocalesPerdidas, {
   type ConfiguracionVocalesPerdidas,
 } from "./PersonalizarVocalesPerdidas";
 
+import PersonalizarCuentaConmigo, {
+  type ConfiguracionCuentaConmigo,
+} from "./PersonalizarCuentaConmigo";
+
 type Juego = {
   nombre: string;
 };
@@ -40,7 +44,8 @@ type ConfiguracionJuego =
   | ConfiguracionDondeEstaOsito
   | ConfiguracionCaritasFelices
   | ConfiguracionClasificaAgrupa
-  | ConfiguracionVocalesPerdidas;
+  | ConfiguracionVocalesPerdidas
+  | ConfiguracionCuentaConmigo;
 
 type Props = {
   juego: Juego | null;
@@ -120,6 +125,16 @@ export default function PersonalizarJuegoModal({
     <PersonalizarVocalesPerdidas
         configuracionInicial={
         configuracionInicial as ConfiguracionVocalesPerdidas | undefined
+        }
+        onGuardar={onGuardar}
+        onCancelar={onCerrar}
+    />
+    ),
+
+    "Cuenta Conmigo": (
+    <PersonalizarCuentaConmigo
+        configuracionInicial={
+        configuracionInicial as ConfiguracionCuentaConmigo | undefined
         }
         onGuardar={onGuardar}
         onCancelar={onCerrar}
