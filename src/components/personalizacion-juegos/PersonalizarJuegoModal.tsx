@@ -45,6 +45,34 @@ import PersonalizarRutinasDiarias, {
   type ConfiguracionRutinasDiarias,
 } from "./PersonalizarRutinasDiarias";
 
+import PersonalizarTrabajemosJuntos, {
+  type ConfiguracionTrabajemosJuntos,
+} from "./PersonalizarTrabajemosJuntos";
+
+import PersonalizarConstruyePalabras, {
+  type ConfiguracionConstruyePalabras,
+} from "./PersonalizarConstruyePalabras";
+
+import PersonalizarSecuenciasDivertidas, {
+  type ConfiguracionSecuenciasDivertidas,
+} from "./PersonalizarSecuenciasDivertidas";
+
+import PersonalizarAsociacionImagenPalabra, {
+  type ConfiguracionAsociacionImagenPalabra,
+} from "./PersonalizarAsociacionImagenPalabra";
+
+import PersonalizarRompecabezasInteligente, {
+  type ConfiguracionRompecabezasInteligente,
+} from "./PersonalizarRompecabezasInteligente";
+
+import PersonalizarEmocionesAccion, {
+  type ConfiguracionEmocionesAccion,
+} from "./PersonalizarEmocionesAccion";
+
+import PersonalizarElIntruso, {
+  type ConfiguracionElIntruso,
+} from "./PersonalizarElIntruso";
+
 type Juego = {
   nombre: string;
 };
@@ -60,7 +88,14 @@ type ConfiguracionJuego =
   | ConfiguracionCuentaConmigo
   | ConfiguracionMemoriaVisual
   | ConfiguracionFigurasPosiciones
-  | ConfiguracionRutinasDiarias;
+  | ConfiguracionRutinasDiarias
+  | ConfiguracionTrabajemosJuntos
+  | ConfiguracionConstruyePalabras
+  | ConfiguracionSecuenciasDivertidas
+  | ConfiguracionAsociacionImagenPalabra
+  | ConfiguracionRompecabezasInteligente
+  | ConfiguracionEmocionesAccion
+  | ConfiguracionElIntruso;
 
 type Props = {
   juego: Juego | null;
@@ -180,6 +215,79 @@ export default function PersonalizarJuegoModal({
       <PersonalizarRutinasDiarias
         configuracionInicial={
           configuracionInicial as ConfiguracionRutinasDiarias | undefined
+        }
+        onGuardar={onGuardar}
+        onCancelar={onCerrar}
+      />
+    ),
+
+    "Trabajemos Juntos": (
+      <PersonalizarTrabajemosJuntos
+        configuracionInicial={
+          configuracionInicial as ConfiguracionTrabajemosJuntos | undefined
+        }
+        onGuardar={onGuardar}
+        onCancelar={onCerrar}
+      />
+    ),
+
+    "Construye Palabras": (
+      <PersonalizarConstruyePalabras
+        configuracionInicial={
+          configuracionInicial as ConfiguracionConstruyePalabras | undefined
+        }
+        onGuardar={onGuardar}
+        onCancelar={onCerrar}
+      />
+    ),
+
+    "Secuencias Divertidas": (
+      <PersonalizarSecuenciasDivertidas
+        configuracionInicial={
+          configuracionInicial as
+            | ConfiguracionSecuenciasDivertidas
+            | undefined
+        }
+        onGuardar={onGuardar}
+        onCancelar={onCerrar}
+      />
+    ),
+
+    "Asociación Imagen-Palabra": (
+      <PersonalizarAsociacionImagenPalabra
+        configuracionInicial={
+          configuracionInicial as
+            | ConfiguracionAsociacionImagenPalabra
+            | undefined
+        }
+        onGuardar={onGuardar}
+        onCancelar={onCerrar}
+      />
+    ),
+    "Rompecabezas Inteligente": (
+      <PersonalizarRompecabezasInteligente
+        configuracionInicial={
+          configuracionInicial as
+            | ConfiguracionRompecabezasInteligente
+            | undefined
+        }
+        onGuardar={onGuardar}
+        onCancelar={onCerrar}
+      />
+    ),
+    "Emociones en Acción": (
+      <PersonalizarEmocionesAccion
+        configuracionInicial={
+          configuracionInicial as ConfiguracionEmocionesAccion | undefined
+        }
+        onGuardar={onGuardar}
+        onCancelar={onCerrar}
+      />
+    ),
+    "Pequeños Retos": (
+      <PersonalizarElIntruso
+        configuracionInicial={
+          configuracionInicial as ConfiguracionElIntruso | undefined
         }
         onGuardar={onGuardar}
         onCancelar={onCerrar}

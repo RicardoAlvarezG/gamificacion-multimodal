@@ -15,6 +15,13 @@ import type { ConfiguracionCuentaConmigo } from "@/components/personalizacion-ju
 import type { ConfiguracionMemoriaVisual } from "@/components/personalizacion-juegos/PersonalizarMemoriaVisual";
 import type { ConfiguracionFigurasPosiciones } from "@/components/personalizacion-juegos/PersonalizarFigurasPosiciones";
 import type { ConfiguracionRutinasDiarias } from "@/components/personalizacion-juegos/PersonalizarRutinasDiarias";
+import type { ConfiguracionTrabajemosJuntos } from "@/components/personalizacion-juegos/PersonalizarTrabajemosJuntos";
+import type { ConfiguracionConstruyePalabras } from "@/components/personalizacion-juegos/PersonalizarConstruyePalabras";
+import type { ConfiguracionSecuenciasDivertidas } from "@/components/personalizacion-juegos/PersonalizarSecuenciasDivertidas";
+import type { ConfiguracionAsociacionImagenPalabra } from "@/components/personalizacion-juegos/PersonalizarAsociacionImagenPalabra";
+import type { ConfiguracionRompecabezasInteligente } from "@/components/personalizacion-juegos/PersonalizarRompecabezasInteligente";
+import type { ConfiguracionEmocionesAccion } from "@/components/personalizacion-juegos/PersonalizarEmocionesAccion";
+import type { ConfiguracionElIntruso } from "@/components/personalizacion-juegos/PersonalizarElIntruso";
 
 type Aula = {
   id: number;
@@ -65,7 +72,14 @@ type ConfiguracionJuego =
   | ConfiguracionCuentaConmigo
   | ConfiguracionMemoriaVisual
   | ConfiguracionFigurasPosiciones
-  | ConfiguracionRutinasDiarias;
+  | ConfiguracionRutinasDiarias
+  | ConfiguracionTrabajemosJuntos
+  | ConfiguracionConstruyePalabras
+  | ConfiguracionSecuenciasDivertidas
+  | ConfiguracionAsociacionImagenPalabra
+  | ConfiguracionRompecabezasInteligente
+  | ConfiguracionEmocionesAccion
+  | ConfiguracionElIntruso;
   
 
 type ConfiguracionesPersonalizadas = Partial<

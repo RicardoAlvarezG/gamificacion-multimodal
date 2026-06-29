@@ -31,6 +31,13 @@ import type { ConfiguracionCuentaConmigo } from "../personalizacion-juegos/Perso
 import type { ConfiguracionMemoriaVisual } from "@/components/personalizacion-juegos/PersonalizarMemoriaVisual";
 import type { ConfiguracionFigurasPosiciones } from "../personalizacion-juegos/PersonalizarFigurasPosiciones";
 import type { ConfiguracionRutinasDiarias } from "../personalizacion-juegos/PersonalizarRutinasDiarias";
+import type { ConfiguracionTrabajemosJuntos } from "@/components/personalizacion-juegos/PersonalizarTrabajemosJuntos";
+import type { ConfiguracionConstruyePalabras } from "../personalizacion-juegos/PersonalizarConstruyePalabras";
+import type { ConfiguracionSecuenciasDivertidas } from "../personalizacion-juegos/PersonalizarSecuenciasDivertidas";
+import type { ConfiguracionAsociacionImagenPalabra } from "../personalizacion-juegos/PersonalizarAsociacionImagenPalabra";
+import type { ConfiguracionRompecabezasInteligente } from "../personalizacion-juegos/PersonalizarRompecabezasInteligente";
+import type { ConfiguracionEmocionesAccion } from "../personalizacion-juegos/PersonalizarEmocionesAccion";
+import type { ConfiguracionElIntruso } from "../personalizacion-juegos/PersonalizarElIntruso";
 
 type Juego = {
   nombre: string;
@@ -47,7 +54,13 @@ type ConfiguracionJuego =
   | ConfiguracionMemoriaVisual
   | ConfiguracionFigurasPosiciones
   | ConfiguracionRutinasDiarias
-  
+  | ConfiguracionTrabajemosJuntos
+  | ConfiguracionConstruyePalabras
+  | ConfiguracionSecuenciasDivertidas
+  | ConfiguracionAsociacionImagenPalabra
+  | ConfiguracionRompecabezasInteligente
+  | ConfiguracionEmocionesAccion
+  | ConfiguracionElIntruso 
 
 type Props = {
   juego: Juego;
@@ -158,13 +171,77 @@ export default function EjecutarJuego({
             onFinalizar={onFinalizar}
         />
         ),
-    "Trabajemos Juntos": <TrabajemosJuntos {...propsBasicos} />,
-    "Construye Palabras": <ConstruyePalabras {...propsBasicos} />,
-    "Secuencias Divertidas": <SecuenciasDivertidas {...propsBasicos} />,
-    "Asociación Imagen-Palabra": <AsociacionImagenPalabra {...propsBasicos} />,
-    "Rompecabezas Inteligente": <RompecabezasInteligente {...propsBasicos} />,
-    "Emociones en Acción": <EmocionesAccion {...propsBasicos} />,
-    "Pequeños Retos": <ElIntruso {...propsBasicos} />,
+    "Trabajemos Juntos": (
+        <TrabajemosJuntos
+            configuracion={
+            configuracionPersonalizada as
+                | ConfiguracionTrabajemosJuntos
+                | undefined
+            }
+            onFinalizar={onFinalizar}
+        />
+        ),
+    "Construye Palabras": (
+        <ConstruyePalabras
+            configuracion={
+            configuracionPersonalizada as
+                | ConfiguracionConstruyePalabras
+                | undefined
+            }
+            onFinalizar={onFinalizar}
+        />
+        ),
+    "Secuencias Divertidas": (
+        <SecuenciasDivertidas
+            configuracion={
+            configuracionPersonalizada as
+                | ConfiguracionSecuenciasDivertidas
+                | undefined
+            }
+            onFinalizar={onFinalizar}
+        />
+        ),
+    "Asociación Imagen-Palabra": (
+        <AsociacionImagenPalabra
+            configuracion={
+            configuracionPersonalizada as
+                | ConfiguracionAsociacionImagenPalabra
+                | undefined
+            }
+            onFinalizar={onFinalizar}
+        />
+        ),
+    "Rompecabezas Inteligente": (
+        <RompecabezasInteligente
+            configuracion={
+            configuracionPersonalizada as
+                | ConfiguracionRompecabezasInteligente
+                | undefined
+            }
+            onFinalizar={onFinalizar}
+        />
+        ),
+    "Emociones en Acción": (
+        <EmocionesAccion
+            configuracion={
+            configuracionPersonalizada as
+                | ConfiguracionEmocionesAccion
+                | undefined
+            }
+            onFinalizar={onFinalizar}
+        />
+        ),
+    "Pequeños Retos": (
+        <ElIntruso
+            configuracion={
+            configuracionPersonalizada as
+                | ConfiguracionElIntruso
+                | undefined
+            }
+            onFinalizar={onFinalizar}
+        />
+        ),
+  
   };
 
   return juegos[juego.nombre] ?? null;

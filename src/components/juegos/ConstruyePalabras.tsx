@@ -1,9 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { ConfiguracionConstruyePalabras } from "../personalizacion-juegos/PersonalizarConstruyePalabras";
 
 type Props = {
   onFinalizar: () => void;
+  configuracion?: ConfiguracionConstruyePalabras;
 };
 
 type Palabra = {
@@ -26,8 +28,34 @@ const palabrasBase: Palabra[] = [
 
 const mezclar = <T,>(array: T[]) => [...array].sort(() => Math.random() - 0.5);
 
-export default function ConstruyePalabras({ onFinalizar }: Props) {
-  const rondas = useMemo(() => mezclar(palabrasBase).slice(0, 5), []);
+const normalizarPalabra = (texto: string) =>
+  texto
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-ZÁÉÍÓÚÜÑ]/g, "");
+
+export default function ConstruyePalabras({
+  onFinalizar,
+  configuracion,
+}: Props) {
+  const usaPersonalizacion =
+    !!configuracion &&
+    configuracion.palabras.length > 0;
+
+  const rondas = useMemo(() => {
+    if (usaPersonalizacion) {
+      return mezclar(
+        configuracion.palabras
+          .map((item) => ({
+            palabra: normalizarPalabra(item.palabra),
+            imagen: item.imagen.replace("/juegos/palabras/", ""),
+          }))
+          .filter((item) => item.palabra.length > 0)
+      );
+    }
+
+    return mezclar(palabrasBase).slice(0, 5);
+  }, [configuracion, usaPersonalizacion]);
 
   const [rondaActual, setRondaActual] = useState(0);
   const [letrasSeleccionadas, setLetrasSeleccionadas] = useState<string[]>([]);
@@ -42,11 +70,12 @@ export default function ConstruyePalabras({ onFinalizar }: Props) {
     return rondas.map((ronda) => mezclar(ronda.palabra.split("")));
   }, [rondas]);
 
-  const letrasActuales = letrasMezcladas[rondaActual];
-  const siguienteLetra = palabraActual.palabra[letrasSeleccionadas.length];
+  const letrasActuales = letrasMezcladas[rondaActual] ?? [];
+  const siguienteLetra = palabraActual?.palabra[letrasSeleccionadas.length];
 
   const seleccionarLetra = (letra: string, index: number) => {
     if (
+      !palabraActual ||
       juegoTerminado ||
       indicesUsados.includes(index) ||
       indiceError !== null
@@ -67,7 +96,7 @@ export default function ConstruyePalabras({ onFinalizar }: Props) {
 
         setTimeout(() => {
           if (rondaActual + 1 < rondas.length) {
-            setRondaActual(rondaActual + 1);
+            setRondaActual((prev) => prev + 1);
             setLetrasSeleccionadas([]);
             setIndicesUsados([]);
             setIndiceError(null);
@@ -88,6 +117,16 @@ export default function ConstruyePalabras({ onFinalizar }: Props) {
     }
   };
 
+  if (!palabraActual) {
+    return (
+      <div className="w-full rounded-3xl bg-gradient-to-br from-sky-100 via-purple-50 to-pink-100 p-8 text-center shadow-lg">
+        <h2 className="text-3xl font-extrabold text-purple-700">
+          No hay palabras disponibles.
+        </h2>
+      </div>
+    );
+  }
+
   if (juegoTerminado) {
     return (
       <div className="w-full rounded-3xl bg-gradient-to-br from-purple-100 via-pink-50 to-yellow-100 p-8 text-center shadow-lg">
@@ -103,7 +142,7 @@ export default function ConstruyePalabras({ onFinalizar }: Props) {
           </p>
 
           <p className="mt-3 text-2xl font-extrabold text-yellow-500">
-            ⭐ 5/5 palabras construidas
+            ⭐ {rondas.length}/{rondas.length} palabras construidas
           </p>
 
           <button

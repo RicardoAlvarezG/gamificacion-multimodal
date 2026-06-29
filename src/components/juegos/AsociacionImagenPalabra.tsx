@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Baloo_2 } from "next/font/google";
+import type { ConfiguracionAsociacionImagenPalabra } from "../personalizacion-juegos/PersonalizarAsociacionImagenPalabra";
 
 const baloo = Baloo_2({
   subsets: ["latin"],
@@ -10,29 +11,38 @@ const baloo = Baloo_2({
 
 type Props = {
   onFinalizar: () => void;
+  configuracion?: ConfiguracionAsociacionImagenPalabra;
 };
 
 type Item = {
+  id: string;
   palabra: string;
   imagen: string;
 };
 
 const elementos: Item[] = [
-  { palabra: "MESA", imagen: "mesa2.webp" },
-  { palabra: "MANO", imagen: "mano2.webp" },
-  { palabra: "GATO", imagen: "gato2.webp" },
-  { palabra: "VACA", imagen: "vaca2.webp" },
-  { palabra: "PEZ", imagen: "pez2.webp" },
-  { palabra: "LUNA", imagen: "luna2.webp" },
-  { palabra: "FLOR", imagen: "flor2.webp" },
-  { palabra: "PATO", imagen: "pato2.webp" },
-  { palabra: "CASA", imagen: "casa2.webp" },
-  { palabra: "SOL", imagen: "sol2.webp" },
-  { palabra: "ESTRELLA", imagen: "estrellita2.webp" },
-  { palabra: "ABEJA", imagen: "abejita2.webp" },
-  { palabra: "BARCO", imagen: "barco2.webp" },
-  { palabra: "MANZANA", imagen: "manzana2.webp" },
-  { palabra: "CARRO", imagen: "carrito2.webp" },
+  { id: "mesa", palabra: "MESA", imagen: "mesa2.webp" },
+  { id: "mano", palabra: "MANO", imagen: "mano2.webp" },
+  { id: "gato", palabra: "GATO", imagen: "gato2.webp" },
+  { id: "vaca", palabra: "VACA", imagen: "vaca2.webp" },
+  { id: "pez", palabra: "PEZ", imagen: "pez2.webp" },
+  { id: "luna", palabra: "LUNA", imagen: "luna2.webp" },
+  { id: "flor", palabra: "FLOR", imagen: "flor2.webp" },
+  { id: "pato", palabra: "PATO", imagen: "pato2.webp" },
+  { id: "casa", palabra: "CASA", imagen: "casa2.webp" },
+  { id: "sol", palabra: "SOL", imagen: "sol2.webp" },
+  { id: "estrella", palabra: "ESTRELLA", imagen: "estrellita2.webp" },
+  { id: "abeja", palabra: "ABEJA", imagen: "abejita2.webp" },
+  { id: "barco", palabra: "BARCO", imagen: "barco2.webp" },
+  { id: "manzana", palabra: "MANZANA", imagen: "manzana2.webp" },
+  { id: "carro", palabra: "CARRO", imagen: "carrito2.webp" },
+
+  // Nuevas imágenes
+  { id: "perro", palabra: "PERRO", imagen: "perro2.webp" },
+  { id: "arbol", palabra: "ÁRBOL", imagen: "arbol2.webp" },
+  { id: "pelota", palabra: "PELOTA", imagen: "pelota2.webp" },
+  { id: "mariposa", palabra: "MARIPOSA", imagen: "mariposa2.webp" },
+  { id: "zapato", palabra: "ZAPATO", imagen: "zapato2.webp" },
 ];
 
 const mezclar = <T,>(array: T[]) =>
@@ -40,42 +50,54 @@ const mezclar = <T,>(array: T[]) =>
 
 export default function AsociacionImagenPalabra({
   onFinalizar,
+  configuracion,
 }: Props) {
-  const rondas = useMemo(
-    () => mezclar(elementos).slice(0, 5),
-    []
-  );
+  const modo = configuracion?.modo ?? "IMAGEN_A_PALABRA";
+
+  const bancoElementos = useMemo(() => {
+    if (!configuracion) return elementos;
+
+    const filtrados = elementos.filter((item) =>
+      configuracion.imagenes.includes(item.id)
+    );
+
+    return filtrados.length > 0 ? filtrados : elementos;
+  }, [configuracion]);
+
+  const rondas = useMemo(() => {
+    if (!configuracion) {
+      return mezclar(elementos).slice(0, 5);
+    }
+
+    return mezclar(bancoElementos).slice(
+      0,
+      configuracion.rondas || bancoElementos.length
+    );
+  }, [bancoElementos, configuracion]);
 
   const [rondaActual, setRondaActual] = useState(0);
-  const [opcionSeleccionada, setOpcionSeleccionada] =
-    useState<string | null>(null);
-  const [respuestaCorrecta, setRespuestaCorrecta] =
-    useState(false);
+  const [opcionSeleccionada, setOpcionSeleccionada] = useState<string | null>(
+    null
+  );
+  const [respuestaCorrecta, setRespuestaCorrecta] = useState(false);
   const [finalizado, setFinalizado] = useState(false);
 
   const itemActual = rondas[rondaActual];
 
   const opciones = useMemo(() => {
     const distractores = mezclar(
-      elementos.filter(
-        (item) => item.palabra !== itemActual.palabra
-      )
-    )
-      .slice(0, 2)
-      .map((item) => item.palabra);
+      bancoElementos.filter((item) => item.id !== itemActual.id)
+    ).slice(0, 2);
 
-    return mezclar([
-      itemActual.palabra,
-      ...distractores,
-    ]);
-  }, [itemActual]);
+    return mezclar([itemActual, ...distractores]);
+  }, [bancoElementos, itemActual]);
 
-  const seleccionarOpcion = (palabra: string) => {
+  const seleccionarOpcion = (id: string) => {
     if (opcionSeleccionada) return;
 
-    setOpcionSeleccionada(palabra);
+    setOpcionSeleccionada(id);
 
-    if (palabra === itemActual.palabra) {
+    if (id === itemActual.id) {
       setRespuestaCorrecta(true);
 
       setTimeout(() => {
@@ -129,7 +151,9 @@ export default function AsociacionImagenPalabra({
         </h2>
 
         <p className="mt-4 text-4xl text-purple-600">
-          Toca la palabra que corresponde a la imagen
+          {modo === "IMAGEN_A_PALABRA"
+            ? "Toca la palabra que corresponde a la imagen"
+            : "Toca la imagen que corresponde a la palabra"}
         </p>
 
         <div className="mt-4 text-3xl font-bold text-blue-600">
@@ -137,65 +161,97 @@ export default function AsociacionImagenPalabra({
         </div>
       </div>
 
-      <div className="mx-auto flex max-w-7xl items-center justify-center gap-16">
-        <div className="flex h-[650px] w-[650px] items-center justify-center rounded-[40px] border-8 border-dashed border-purple-300 bg-white p-6 shadow-xl">
-          <img
-            src={`/juegos/asociacion-palabra/${itemActual.imagen}`}
-            alt={itemActual.palabra}
-            className="h-full w-full object-contain"
-          />
+      {modo === "IMAGEN_A_PALABRA" ? (
+        <div className="mx-auto flex max-w-7xl items-center justify-center gap-16">
+          <div className="flex h-[650px] w-[650px] items-center justify-center rounded-[40px] border-8 border-dashed border-purple-300 bg-white p-6 shadow-xl">
+            <img
+              src={`/juegos/asociacion-palabra/${itemActual.imagen}`}
+              alt={itemActual.palabra}
+              className="h-full w-full object-contain"
+            />
+          </div>
+
+          <div className="flex w-[500px] flex-col gap-8">
+            {opciones.map((item) => {
+              const esSeleccionada = opcionSeleccionada === item.id;
+              const esCorrecta = item.id === itemActual.id;
+
+              let estilo =
+                "bg-white text-purple-700 border-purple-300 hover:scale-105 hover:bg-yellow-100";
+
+              if (esSeleccionada && esCorrecta) {
+                estilo =
+                  "bg-green-300 text-green-900 border-green-500 scale-105";
+              }
+
+              if (esSeleccionada && !esCorrecta) {
+                estilo = "bg-red-300 text-red-900 border-red-500";
+              }
+
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => seleccionarOpcion(item.id)}
+                  className={`rounded-[30px] border-4 px-8 py-8 text-6xl font-extrabold shadow-lg transition ${estilo}`}
+                >
+                  {item.palabra}
+                </button>
+              );
+            })}
+          </div>
         </div>
+      ) : (
+        <div className="mx-auto flex max-w-7xl flex-col items-center justify-center gap-12">
+          <div className="rounded-[40px] border-8 border-dashed border-purple-300 bg-white px-24 py-14 text-center text-8xl font-extrabold text-purple-700 shadow-xl">
+            {itemActual.palabra}
+          </div>
 
-        <div className="flex w-[500px] flex-col gap-8">
-          {opciones.map((palabra) => {
-            const esSeleccionada =
-              opcionSeleccionada === palabra;
+          <div className="grid grid-cols-3 gap-8">
+            {opciones.map((item) => {
+              const esSeleccionada = opcionSeleccionada === item.id;
+              const esCorrecta = item.id === itemActual.id;
 
-            const esCorrecta =
-              palabra === itemActual.palabra;
+              let estilo =
+                "bg-white border-purple-300 hover:scale-105 hover:bg-yellow-100";
 
-            let estilo =
-              "bg-white text-purple-700 border-purple-300 hover:scale-105 hover:bg-yellow-100";
+              if (esSeleccionada && esCorrecta) {
+                estilo = "bg-green-300 border-green-500 scale-105";
+              }
 
-            if (esSeleccionada && esCorrecta) {
-              estilo =
-                "bg-green-300 text-green-900 border-green-500 scale-105";
-            }
+              if (esSeleccionada && !esCorrecta) {
+                estilo = "bg-red-300 border-red-500";
+              }
 
-            if (esSeleccionada && !esCorrecta) {
-              estilo =
-                "bg-red-300 text-red-900 border-red-500";
-            }
-
-            return (
-              <button
-                key={palabra}
-                onClick={() =>
-                  seleccionarOpcion(palabra)
-                }
-                className={`rounded-[30px] border-4 px-8 py-8 text-6xl font-extrabold shadow-lg transition ${estilo}`}
-              >
-                {palabra}
-              </button>
-            );
-          })}
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => seleccionarOpcion(item.id)}
+                  className={`flex h-[350px] w-[350px] items-center justify-center rounded-[35px] border-4 p-6 shadow-lg transition ${estilo}`}
+                >
+                  <img
+                    src={`/juegos/asociacion-palabra/${item.imagen}`}
+                    alt={item.palabra}
+                    className="h-full w-full object-contain"
+                  />
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="mt-10 text-center">
-        {opcionSeleccionada &&
-          respuestaCorrecta && (
-            <p className="text-5xl font-extrabold text-green-600">
-              ¡Muy bien! 🎉
-            </p>
-          )}
+        {opcionSeleccionada && respuestaCorrecta && (
+          <p className="text-5xl font-extrabold text-green-600">
+            ¡Muy bien! 🎉
+          </p>
+        )}
 
-        {opcionSeleccionada &&
-          !respuestaCorrecta && (
-            <p className="text-5xl font-extrabold text-red-500">
-              Inténtalo otra vez 😊
-            </p>
-          )}
+        {opcionSeleccionada && !respuestaCorrecta && (
+          <p className="text-5xl font-extrabold text-red-500">
+            Inténtalo otra vez 😊
+          </p>
+        )}
       </div>
     </div>
   );

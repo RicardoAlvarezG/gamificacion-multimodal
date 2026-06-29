@@ -1,15 +1,17 @@
-// src/components/juegos/EmocionesAccion.tsx
 "use client";
 
 import { useMemo, useState } from "react";
+import type { ConfiguracionEmocionesAccion } from "../personalizacion-juegos/PersonalizarEmocionesAccion";
 
 type Props = {
   onFinalizar: () => void;
+  configuracion?: ConfiguracionEmocionesAccion;
 };
 
 type Emocion = {
   nombre: string;
   imagen: string;
+  personalizada?: boolean;
 };
 
 const TOTAL_RONDAS = 5;
@@ -38,8 +40,21 @@ const crearRondas = (): Emocion[] => {
     }));
 };
 
-export default function EmocionesAccion({ onFinalizar }: Props) {
-  const rondas = useMemo(() => crearRondas(), []);
+export default function EmocionesAccion({
+  onFinalizar,
+  configuracion,
+}: Props) {
+  const rondas = useMemo(() => {
+    if (!configuracion) {
+      return crearRondas();
+    }
+
+    return configuracion.rondas.map((ronda) => ({
+      nombre: ronda.respuestaCorrecta,
+      imagen: ronda.imagen,
+      personalizada: true,
+    }));
+  }, [configuracion]);
 
   const [rondaActual, setRondaActual] = useState(0);
   const [mensaje, setMensaje] = useState("");
@@ -62,6 +77,14 @@ export default function EmocionesAccion({ onFinalizar }: Props) {
 
     return mezclar([emocionActual, ...distractores]);
   }, [emocionActual]);
+
+  const obtenerRutaImagen = (imagen: string, personalizada?: boolean) => {
+    if (personalizada || imagen.startsWith("blob:") || imagen.startsWith("/")) {
+      return imagen;
+    }
+
+    return `/juegos/emociones-accion/${imagen}`;
+  };
 
   const seleccionarRespuesta = (opcion: Emocion) => {
     if (opcionMarcada) return;
@@ -131,7 +154,7 @@ export default function EmocionesAccion({ onFinalizar }: Props) {
       <div className="flex flex-col items-center gap-8">
         <div className="bg-white rounded-[3rem] p-6 shadow-lg border-4 border-dashed border-purple-300">
           <img
-            src={`/juegos/emociones-accion/${emocionActual.imagen}`}
+            src={obtenerRutaImagen(emocionActual.imagen, emocionActual.personalizada)}
             alt={emocionActual.nombre}
             className="w-[760px] h-[520px] object-contain rounded-[2rem]"
           />

@@ -1,15 +1,22 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { ConfiguracionRompecabezasInteligente } from "../personalizacion-juegos/PersonalizarRompecabezasInteligente";
 
 type Props = {
   onFinalizar: () => void;
+  configuracion?: ConfiguracionRompecabezasInteligente;
 };
 
 type Pieza = {
   id: number;
   fila: number;
   columna: number;
+};
+
+type Ronda = {
+  imagen: string;
+  grid: number;
 };
 
 const imagenes = [
@@ -43,15 +50,25 @@ const crearPiezas = (grid: number): Pieza[] => {
   return piezas;
 };
 
-export default function RompecabezasInteligente({ onFinalizar }: Props) {
-  const rondas = useMemo(() => {
-    const seleccionadas = mezclar(imagenes).slice(0, 3);
+export default function RompecabezasInteligente({
+  onFinalizar,
+  configuracion,
+}: Props) {
+  const rondas = useMemo<Ronda[]>(() => {
+    if (!configuracion) {
+      const seleccionadas = mezclar(imagenes).slice(0, 3);
 
-    return seleccionadas.map((imagen, index) => ({
-      imagen,
-      grid: index === 2 ? 3 : 2,
+      return seleccionadas.map((imagen, index) => ({
+        imagen,
+        grid: index === 2 ? 3 : 2,
+      }));
+    }
+
+      return configuracion.imagenes.map((imagen) => ({
+      imagen: imagen.src,
+      grid: imagen.grid,
     }));
-  }, []);
+  }, [configuracion]);
 
   const [rondaActual, setRondaActual] = useState(0);
   const [piezaSeleccionada, setPiezaSeleccionada] = useState<Pieza | null>(null);
@@ -69,6 +86,14 @@ export default function RompecabezasInteligente({ onFinalizar }: Props) {
 
   const ronda = rondas[rondaActual];
   const totalPiezas = ronda.grid * ronda.grid;
+
+  function obtenerRutaImagen(imagen: string) {
+    if (imagen.startsWith("blob:") || imagen.startsWith("/")) {
+      return imagen;
+    }
+
+    return `/juegos/rompecabezas/${imagen}`;
+  }
 
   function reiniciarRonda(nuevaRonda: number) {
     const grid = rondas[nuevaRonda].grid;
@@ -137,7 +162,7 @@ export default function RompecabezasInteligente({ onFinalizar }: Props) {
 
   function estiloPieza(pieza: Pieza) {
     return {
-      backgroundImage: `url(/juegos/rompecabezas/${ronda.imagen})`,
+      backgroundImage: `url(${obtenerRutaImagen(ronda.imagen)})`,
       backgroundSize: `${ronda.grid * 100}% ${ronda.grid * 100}%`,
       backgroundPosition: `${(pieza.columna / (ronda.grid - 1)) * 100}% ${
         (pieza.fila / (ronda.grid - 1)) * 100
@@ -173,7 +198,7 @@ export default function RompecabezasInteligente({ onFinalizar }: Props) {
         </h2>
 
         <p className="mt-3 text-3xl font-bold text-gray-700">
-          Ronda {rondaActual + 1} de 3
+          Ronda {rondaActual + 1} de {rondas.length}
         </p>
 
         <p className="mt-2 text-2xl font-semibold text-gray-600">

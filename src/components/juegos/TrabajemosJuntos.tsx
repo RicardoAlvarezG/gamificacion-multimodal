@@ -1,12 +1,14 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { ConfiguracionTrabajemosJuntos } from "../personalizacion-juegos/PersonalizarTrabajemosJuntos";
 
 type Props = {
   onFinalizar: () => void;
+  configuracion?: ConfiguracionTrabajemosJuntos;
 };
 
-const imagenesEquipo = [
+const imagenesEquipoPredeterminadas = [
   "equipo1.webp",
   "equipo2.webp",
   "equipo3.webp",
@@ -17,7 +19,12 @@ const imagenesEquipo = [
   "equipo8.webp",
 ];
 
-const imagenesDistractoras = [
+const imagenesEquipoPersonalizables = Array.from(
+  { length: 20 },
+  (_, index) => `equipo${index + 1}.webp`
+);
+
+const imagenesDistractorasPredeterminadas = [
   "solo1.webp",
   "solo2.webp",
   "solo3.webp",
@@ -28,10 +35,53 @@ const imagenesDistractoras = [
   "pelea4.webp",
 ];
 
+const imagenesDistractorasPersonalizables = [
+  ...Array.from({ length: 8 }, (_, index) => `solo${index + 1}.webp`),
+  ...Array.from({ length: 8 }, (_, index) => `pelea${index + 1}.webp`),
+];
+
 const mezclar = <T,>(array: T[]) => [...array].sort(() => Math.random() - 0.5);
 
-export default function TrabajemosJuntos({ onFinalizar }: Props) {
-  const rondas = useMemo(() => mezclar(imagenesEquipo).slice(0, 4), []);
+const crearRondasPersonalizadas = (
+  situaciones: string[],
+  cantidadRondas: number
+) => {
+  const seleccionadas = situaciones
+    .map((id) => `${id}.webp`)
+    .filter((imagen) => imagenesEquipoPersonalizables.includes(imagen));
+
+  const rondas: string[] = [];
+
+  while (rondas.length < cantidadRondas) {
+    rondas.push(...mezclar(seleccionadas));
+  }
+
+  return rondas.slice(0, cantidadRondas);
+};
+
+export default function TrabajemosJuntos({
+  onFinalizar,
+  configuracion,
+}: Props) {
+  const usaPersonalizacion =
+    !!configuracion &&
+    configuracion.situaciones.length > 0 &&
+    configuracion.rondas >= configuracion.situaciones.length;
+
+  const rondas = useMemo(() => {
+    if (usaPersonalizacion) {
+      return crearRondasPersonalizadas(
+        configuracion.situaciones,
+        configuracion.rondas
+      );
+    }
+
+    return mezclar(imagenesEquipoPredeterminadas).slice(0, 4);
+  }, [configuracion, usaPersonalizacion]);
+
+  const imagenesDistractoras = usaPersonalizacion
+    ? imagenesDistractorasPersonalizables
+    : imagenesDistractorasPredeterminadas;
 
   const [rondaActual, setRondaActual] = useState(0);
   const [seleccionada, setSeleccionada] = useState<string | null>(null);
@@ -46,7 +96,7 @@ export default function TrabajemosJuntos({ onFinalizar }: Props) {
   const opciones = useMemo(() => {
     const distractoresRandom = mezclar(imagenesDistractoras).slice(0, 2);
     return mezclar([imagenCorrecta, ...distractoresRandom]);
-  }, [imagenCorrecta]);
+  }, [imagenCorrecta, imagenesDistractoras]);
 
   const elegirOpcion = (imagen: string) => {
     if (bloqueado || juegoTerminado) return;
@@ -131,13 +181,13 @@ export default function TrabajemosJuntos({ onFinalizar }: Props) {
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
-          {opciones.map((imagen) => {
+          {opciones.map((imagen, index) => {
             const esSeleccionada = seleccionada === imagen;
             const esCorrecta = imagen === imagenCorrecta;
 
             return (
               <button
-                key={imagen}
+                key={`${imagen}-${index}`}
                 onClick={() => elegirOpcion(imagen)}
                 disabled={bloqueado && !esSeleccionada}
                 className={`group rounded-3xl border-4 bg-white p-4 shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl ${

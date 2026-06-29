@@ -1,9 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { ConfiguracionElIntruso } from "../personalizacion-juegos/PersonalizarElIntruso";
 
 type Props = {
   onFinalizar: () => void;
+  configuracion?: ConfiguracionElIntruso;
 };
 
 type ImagenJuego = {
@@ -16,6 +18,7 @@ type Ronda = {
   imagenesArriba: ImagenJuego[];
   opciones: ImagenJuego[];
   respuesta: ImagenJuego;
+  nombreGrupo?: string;
 };
 
 const imagenes: ImagenJuego[] = [
@@ -102,8 +105,71 @@ function crearRondas(): Ronda[] {
   return rondas;
 }
 
-export default function ElIntruso({ onFinalizar }: Props) {
-  const rondas = useMemo(() => crearRondas(), []);
+function crearRondasPersonalizadas(
+  configuracion: ConfiguracionElIntruso
+): Ronda[] {
+  const todasLasImagenes = configuracion.rondas.flatMap((ronda) =>
+    ronda.imagenes.map((imagen) => ({
+      nombre: imagen.nombre,
+      imagen: imagen.src,
+      grupo: ronda.nombreGrupo,
+    }))
+  );
+
+  return configuracion.rondas.map((ronda) => {
+    const imagenesGrupo = ronda.imagenes.map((imagen) => ({
+      nombre: imagen.nombre,
+      imagen: imagen.src,
+      grupo: ronda.nombreGrupo,
+    }));
+
+    const imagenesMezcladas = mezclar(imagenesGrupo);
+
+    const respuesta = imagenesMezcladas[3];
+
+    const imagenesArriba = imagenesMezcladas.slice(0, 3);
+
+    let opcionesIncorrectas = mezclar(
+      todasLasImagenes.filter(
+        (imagen) =>
+          imagen.grupo !== ronda.nombreGrupo &&
+          imagen.imagen !== respuesta.imagen
+      )
+    ).slice(0, 2);
+
+    if (opcionesIncorrectas.length < 2) {
+      const faltantes = 2 - opcionesIncorrectas.length;
+
+      const distractoresPredeterminados = mezclar(
+        imagenes.filter((imagen) => imagen.imagen !== respuesta.imagen)
+      ).slice(0, faltantes);
+
+      opcionesIncorrectas = [
+        ...opcionesIncorrectas,
+        ...distractoresPredeterminados,
+      ];
+    }
+
+    const opciones = mezclar([respuesta, ...opcionesIncorrectas]);
+
+    return {
+      imagenesArriba,
+      opciones,
+      respuesta,
+      nombreGrupo: ronda.nombreGrupo,
+    };
+  });
+}
+
+export default function ElIntruso({ onFinalizar, configuracion }: Props) {
+  const rondas = useMemo(() => {
+    if (!configuracion) {
+      return crearRondas();
+    }
+
+    return crearRondasPersonalizadas(configuracion);
+  }, [configuracion]);
+
   const [rondaActual, setRondaActual] = useState(0);
   const [mensaje, setMensaje] = useState("");
   const [seleccionada, setSeleccionada] = useState<string | null>(null);
@@ -182,7 +248,9 @@ export default function ElIntruso({ onFinalizar }: Props) {
 
       <div className="mx-auto mb-6 max-w-6xl rounded-[2rem] border-4 border-dashed border-purple-300 bg-white/80 p-5">
         <p className="mb-5 text-center text-2xl font-black text-purple-700">
-          ¿Qué imagen completa el grupo?
+          {ronda.nombreGrupo
+            ? `¿Qué imagen completa el grupo de ${ronda.nombreGrupo}?`
+            : "¿Qué imagen completa el grupo?"}
         </p>
 
         <div className="flex flex-wrap justify-center gap-5">

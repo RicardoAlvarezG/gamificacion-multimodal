@@ -1,9 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import type { ConfiguracionSecuenciasDivertidas } from "../personalizacion-juegos/PersonalizarSecuenciasDivertidas";
 
 type Props = {
   onFinalizar: () => void;
+  configuracion?: ConfiguracionSecuenciasDivertidas;
 };
 
 type Figura = {
@@ -17,7 +19,7 @@ type Ronda = {
   opciones: Figura[];
 };
 
-const figuras: Figura[] = [
+const figurasBase: Figura[] = [
   { nombre: "Círculo rojo", imagen: "circulo-rojo.webp" },
   { nombre: "Círculo azul", imagen: "circulo-azul.webp" },
   { nombre: "Círculo verde", imagen: "circulo-verde.webp" },
@@ -34,13 +36,57 @@ const figuras: Figura[] = [
   { nombre: "Triángulo amarillo", imagen: "triangulo-amarillo.webp" },
 ];
 
+const gruposPersonalizables: Record<string, Figura[]> = {
+  formas: figurasBase,
+
+  objetos: [
+    { nombre: "Lápiz", imagen: "objeto-lapiz.webp" },
+    { nombre: "Libro", imagen: "objeto-libro.webp" },
+    { nombre: "Mochila", imagen: "objeto-mochila.webp" },
+    { nombre: "Pelota", imagen: "objeto-pelota.webp" },
+    { nombre: "Tijera", imagen: "objeto-tijera.webp" },
+  ],
+
+  transportes: [
+    { nombre: "Auto", imagen: "transporte-auto.webp" },
+    { nombre: "Bicicleta", imagen: "transporte-bicicleta.webp" },
+    { nombre: "Bus", imagen: "transporte-bus.webp" },
+    { nombre: "Avión", imagen: "transporte-avion.webp" },
+    { nombre: "Barco", imagen: "transporte-barco.webp" },
+  ],
+
+  animales: [
+    { nombre: "Perro", imagen: "animal-perro.webp" },
+    { nombre: "Gato", imagen: "animal-gato.webp" },
+    { nombre: "Pato", imagen: "animal-pato.webp" },
+    { nombre: "Vaca", imagen: "animal-vaca.webp" },
+    { nombre: "Conejo", imagen: "animal-conejo.webp" },
+  ],
+
+  frutas: [
+    { nombre: "Manzana", imagen: "fruta-manzana.webp" },
+    { nombre: "Pera", imagen: "fruta-pera.webp" },
+    { nombre: "Plátano", imagen: "fruta-platano.webp" },
+    { nombre: "Uva", imagen: "fruta-uva.webp" },
+    { nombre: "Fresa", imagen: "fruta-fresa.webp" },
+  ],
+
+  juguetes: [
+    { nombre: "Carro", imagen: "juguete-carro.webp" },
+    { nombre: "Muñeca", imagen: "juguete-muneca.webp" },
+    { nombre: "Peluche", imagen: "juguete-peluche.webp" },
+    { nombre: "Bloques", imagen: "juguete-bloques.webp" },
+    { nombre: "Trompo", imagen: "juguete-trompo.webp" },
+  ],
+};
+
 const mezclar = <T,>(array: T[]) =>
   [...array].sort(() => Math.random() - 0.5);
 
-const crearRondas = (): Ronda[] => {
+const crearRondas = (figuras: Figura[], cantidadRondas: number): Ronda[] => {
   const rondas: Ronda[] = [];
 
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < cantidadRondas; i++) {
     const seleccionadas = mezclar(figuras).slice(0, 2);
 
     const primera = seleccionadas[0];
@@ -50,7 +96,7 @@ const crearRondas = (): Ronda[] => {
     const respuesta = primera;
 
     const distractores = mezclar(
-      figuras.filter((f) => f.imagen !== respuesta.imagen)
+      figuras.filter((figura) => figura.imagen !== respuesta.imagen)
     ).slice(0, 2);
 
     rondas.push({
@@ -65,8 +111,23 @@ const crearRondas = (): Ronda[] => {
 
 export default function SecuenciasDivertidas({
   onFinalizar,
+  configuracion,
 }: Props) {
-  const rondas = useMemo(() => crearRondas(), []);
+  const usaPersonalizacion =
+    !!configuracion &&
+    !!gruposPersonalizables[configuracion.grupo] &&
+    configuracion.rondas > 0;
+
+  const rondas = useMemo(() => {
+    if (usaPersonalizacion) {
+      return crearRondas(
+        gruposPersonalizables[configuracion.grupo],
+        configuracion.rondas
+      );
+    }
+
+    return crearRondas(figurasBase, 3);
+  }, [configuracion, usaPersonalizacion]);
 
   const [rondaActual, setRondaActual] = useState(0);
   const [opcionIncorrecta, setOpcionIncorrecta] = useState<string | null>(null);
@@ -76,7 +137,7 @@ export default function SecuenciasDivertidas({
   const ronda = rondas[rondaActual];
 
   const seleccionarOpcion = (figura: Figura) => {
-    if (opcionCorrecta) return;
+    if (opcionCorrecta || !ronda) return;
 
     if (figura.imagen === ronda.respuesta.imagen) {
       setOpcionCorrecta(figura.imagen);
@@ -130,7 +191,7 @@ export default function SecuenciasDivertidas({
         </h2>
 
         <p className="text-3xl font-bold text-slate-600 mt-4">
-          Observa la secuencia y elige qué figura sigue
+          Observa la secuencia y elige qué imagen sigue
         </p>
 
         <div className="mt-6 inline-block rounded-full bg-purple-500 px-10 py-4 text-2xl font-black text-white">
