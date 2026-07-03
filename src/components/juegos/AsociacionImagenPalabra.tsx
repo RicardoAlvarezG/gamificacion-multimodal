@@ -18,6 +18,7 @@ type Item = {
   id: string;
   palabra: string;
   imagen: string;
+  esTemporal?: boolean;
 };
 
 const elementos: Item[] = [
@@ -36,17 +37,14 @@ const elementos: Item[] = [
   { id: "barco", palabra: "BARCO", imagen: "barco2.webp" },
   { id: "manzana", palabra: "MANZANA", imagen: "manzana2.webp" },
   { id: "carro", palabra: "CARRO", imagen: "carrito2.webp" },
-
-  // Nuevas imágenes
-  { id: "perro", palabra: "PERRO", imagen: "perro2.webp" },
-  { id: "arbol", palabra: "ÁRBOL", imagen: "arbol2.webp" },
-  { id: "pelota", palabra: "PELOTA", imagen: "pelota2.webp" },
-  { id: "mariposa", palabra: "MARIPOSA", imagen: "mariposa2.webp" },
-  { id: "zapato", palabra: "ZAPATO", imagen: "zapato2.webp" },
 ];
 
-const mezclar = <T,>(array: T[]) =>
-  [...array].sort(() => Math.random() - 0.5);
+const mezclar = <T,>(array: T[]) => [...array].sort(() => Math.random() - 0.5);
+
+const obtenerSrc = (item: Item) => {
+  if (item.esTemporal) return item.imagen;
+  return `/juegos/asociacion-palabra/${item.imagen}`;
+};
 
 export default function AsociacionImagenPalabra({
   onFinalizar,
@@ -55,24 +53,24 @@ export default function AsociacionImagenPalabra({
   const modo = configuracion?.modo ?? "IMAGEN_A_PALABRA";
 
   const bancoElementos = useMemo(() => {
-    if (!configuracion) return elementos;
+    if (configuracion?.imagenesPersonalizadas?.length) {
+      return configuracion.imagenesPersonalizadas.map((item) => ({
+        id: item.id,
+        palabra: item.palabra,
+        imagen: item.imagen,
+        esTemporal: true,
+      }));
+    }
 
-    const filtrados = elementos.filter((item) =>
-      configuracion.imagenes.includes(item.id)
-    );
-
-    return filtrados.length > 0 ? filtrados : elementos;
+    return elementos;
   }, [configuracion]);
 
   const rondas = useMemo(() => {
-    if (!configuracion) {
-      return mezclar(elementos).slice(0, 5);
+    if (configuracion?.imagenesPersonalizadas?.length) {
+      return mezclar(bancoElementos);
     }
 
-    return mezclar(bancoElementos).slice(
-      0,
-      configuracion.rondas || bancoElementos.length
-    );
+    return mezclar(elementos).slice(0, 5);
   }, [bancoElementos, configuracion]);
 
   const [rondaActual, setRondaActual] = useState(0);
@@ -85,15 +83,25 @@ export default function AsociacionImagenPalabra({
   const itemActual = rondas[rondaActual];
 
   const opciones = useMemo(() => {
-    const distractores = mezclar(
+    if (!itemActual) return [];
+
+    let distractores = mezclar(
       bancoElementos.filter((item) => item.id !== itemActual.id)
     ).slice(0, 2);
+
+    if (distractores.length < 2) {
+      const extras = mezclar(
+        elementos.filter((item) => item.palabra !== itemActual.palabra)
+      ).slice(0, 2 - distractores.length);
+
+      distractores = [...distractores, ...extras];
+    }
 
     return mezclar([itemActual, ...distractores]);
   }, [bancoElementos, itemActual]);
 
   const seleccionarOpcion = (id: string) => {
-    if (opcionSeleccionada) return;
+    if (opcionSeleccionada || !itemActual) return;
 
     setOpcionSeleccionada(id);
 
@@ -115,6 +123,22 @@ export default function AsociacionImagenPalabra({
       }, 700);
     }
   };
+
+  if (!itemActual) {
+    return (
+      <div className="rounded-3xl bg-white p-8 text-center">
+        <p className="text-2xl font-bold text-purple-700">
+          No hay imágenes para jugar.
+        </p>
+        <button
+          onClick={onFinalizar}
+          className="mt-5 rounded-full bg-purple-600 px-8 py-4 font-bold text-white"
+        >
+          Finalizar Juego
+        </button>
+      </div>
+    );
+  }
 
   if (finalizado) {
     return (
@@ -165,7 +189,7 @@ export default function AsociacionImagenPalabra({
         <div className="mx-auto flex max-w-7xl items-center justify-center gap-16">
           <div className="flex h-[650px] w-[650px] items-center justify-center rounded-[40px] border-8 border-dashed border-purple-300 bg-white p-6 shadow-xl">
             <img
-              src={`/juegos/asociacion-palabra/${itemActual.imagen}`}
+              src={obtenerSrc(itemActual)}
               alt={itemActual.palabra}
               className="h-full w-full object-contain"
             />
@@ -229,7 +253,7 @@ export default function AsociacionImagenPalabra({
                   className={`flex h-[350px] w-[350px] items-center justify-center rounded-[35px] border-4 p-6 shadow-lg transition ${estilo}`}
                 >
                   <img
-                    src={`/juegos/asociacion-palabra/${item.imagen}`}
+                    src={obtenerSrc(item)}
                     alt={item.palabra}
                     className="h-full w-full object-contain"
                   />

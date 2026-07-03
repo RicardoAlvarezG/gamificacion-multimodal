@@ -1,11 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+
+export type ImagenNumeroCuenta = {
+  id: string;
+  numero: number;
+  titulo: string;
+  imagen: string;
+};
 
 export type ConfiguracionCuentaConmigo = {
   numeros: number[];
   imagenes: string[];
   rondas: number;
+  imagenesPorNumero?: ImagenNumeroCuenta[];
 };
 
 type Props = {
@@ -16,34 +24,6 @@ type Props = {
 
 const NUMEROS_DISPONIBLES = [1, 2, 3, 4, 5];
 
-const IMAGENES_DISPONIBLES = [
-  "auto",
-  "avion",
-  "balon",
-  "barco",
-  "conejo",
-  "flor",
-  "gato",
-  "helado",
-  "lapiz",
-  "libro",
-  "manzana",
-  "mariposa",
-  "oso",
-  "paleta",
-  "pelota",
-  "pez",
-  "pollo",
-  "sol",
-  "tren",
-  "vaca",
-];
-
-const nombreBonito = (texto: string) =>
-  texto
-    .replaceAll("_", " ")
-    .replace(/\b\w/g, (letra) => letra.toUpperCase());
-
 export default function PersonalizarCuentaConmigo({
   configuracionInicial,
   onGuardar,
@@ -53,23 +33,54 @@ export default function PersonalizarCuentaConmigo({
     configuracionInicial?.numeros ?? []
   );
 
-  const [imagenesSeleccionadas, setImagenesSeleccionadas] = useState<string[]>(
-    configuracionInicial?.imagenes ?? []
-  );
+  const [imagenesPorNumero, setImagenesPorNumero] = useState<
+    ImagenNumeroCuenta[]
+  >(configuracionInicial?.imagenesPorNumero ?? []);
+
+  const totalRondas = useMemo(() => {
+    return imagenesPorNumero.filter((item) =>
+      numerosSeleccionados.includes(item.numero)
+    ).length;
+  }, [imagenesPorNumero, numerosSeleccionados]);
 
   const alternarNumero = (numero: number) => {
-    setNumerosSeleccionados((actual) =>
-      actual.includes(numero)
-        ? actual.filter((item) => item !== numero)
-        : [...actual, numero]
+    setNumerosSeleccionados((actual) => {
+      if (actual.includes(numero)) {
+        setImagenesPorNumero((imagenes) =>
+          imagenes.filter((item) => item.numero !== numero)
+        );
+
+        return actual.filter((item) => item !== numero);
+      }
+
+      return [...actual, numero];
+    });
+  };
+
+  const subirImagen = (numero: number, archivo?: File) => {
+    if (!archivo) return;
+
+    const nuevaImagen: ImagenNumeroCuenta = {
+      id: `numero-${numero}-${Date.now()}-${Math.random()}`,
+      numero,
+      titulo: `¿Cuántos objetos hay?`,
+      imagen: URL.createObjectURL(archivo),
+    };
+
+    setImagenesPorNumero((actual) => [...actual, nuevaImagen]);
+  };
+
+  const actualizarTitulo = (id: string, titulo: string) => {
+    setImagenesPorNumero((actual) =>
+      actual.map((item) =>
+        item.id === id ? { ...item, titulo } : item
+      )
     );
   };
 
-  const alternarImagen = (imagen: string) => {
-    setImagenesSeleccionadas((actual) =>
-      actual.includes(imagen)
-        ? actual.filter((item) => item !== imagen)
-        : [...actual, imagen]
+  const eliminarImagen = (id: string) => {
+    setImagenesPorNumero((actual) =>
+      actual.filter((item) => item.id !== id)
     );
   };
 
@@ -79,15 +90,34 @@ export default function PersonalizarCuentaConmigo({
       return;
     }
 
-    if (imagenesSeleccionadas.length === 0) {
-      alert("Selecciona al menos una imagen.");
+    const imagenesValidas = imagenesPorNumero.filter((item) =>
+      numerosSeleccionados.includes(item.numero)
+    );
+
+    if (imagenesValidas.length === 0) {
+      alert("Sube al menos una imagen.");
+      return;
+    }
+
+    const numeroSinImagen = numerosSeleccionados.some(
+      (numero) => !imagenesValidas.some((item) => item.numero === numero)
+    );
+
+    if (numeroSinImagen) {
+      alert("Cada número seleccionado debe tener al menos una imagen.");
+      return;
+    }
+
+    if (imagenesValidas.some((item) => item.titulo.trim() === "")) {
+      alert("Todas las imágenes deben tener un título.");
       return;
     }
 
     onGuardar({
       numeros: numerosSeleccionados,
-      imagenes: imagenesSeleccionadas,
-      rondas: imagenesSeleccionadas.length,
+      imagenes: [],
+      imagenesPorNumero: imagenesValidas,
+      rondas: imagenesValidas.length,
     });
   };
 
@@ -120,45 +150,91 @@ export default function PersonalizarCuentaConmigo({
         </div>
       </div>
 
-      <div>
-        <h3 className="mb-3 text-lg font-black text-purple-700">
-          Elige las imágenes
-        </h3>
+      {numerosSeleccionados.length > 0 && (
+        <div className="max-h-[440px] space-y-4 overflow-y-auto pr-2">
+          {numerosSeleccionados.map((numero) => {
+            const imagenesDelNumero = imagenesPorNumero.filter(
+              (item) => item.numero === numero
+            );
 
-        <div className="max-h-[360px] overflow-y-auto pr-2">
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-            {IMAGENES_DISPONIBLES.map((imagen) => {
-              const activo = imagenesSeleccionadas.includes(imagen);
+            return (
+              <div
+                key={numero}
+                className="rounded-3xl border-2 border-purple-100 bg-purple-50 p-4"
+              >
+                <h4 className="mb-3 text-base font-black text-purple-700">
+                  Número {numero}
+                </h4>
 
-              return (
-                <button
-                  key={imagen}
-                  type="button"
-                  onClick={() => alternarImagen(imagen)}
-                  className={`flex items-center gap-3 rounded-2xl border-2 p-3 text-left transition ${
-                    activo
-                      ? "border-purple-500 bg-purple-100"
-                      : "border-purple-200 bg-white hover:bg-purple-50"
-                  }`}
-                >
-                  <img
-                    src={`/juegos/conteo/${imagen}.webp`}
-                    alt={nombreBonito(imagen)}
-                    className="h-14 w-14 object-contain"
-                  />
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    subirImagen(numero, e.target.files?.[0]);
+                    e.currentTarget.value = "";
+                  }}
+                  className="w-full rounded-xl bg-white px-4 py-3 font-bold text-slate-700"
+                />
 
-                  <span className="text-sm font-black text-purple-700">
-                    {nombreBonito(imagen)}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
+                {imagenesDelNumero.length > 0 && (
+                  <div className="mt-4 space-y-3">
+                    {imagenesDelNumero.map((item, index) => (
+                      <div
+                        key={item.id}
+                        className="rounded-2xl bg-white p-3 shadow-sm"
+                      >
+                        <p className="mb-2 text-sm font-black text-purple-700">
+                          Imagen {index + 1}
+                        </p>
+
+                        <div className="grid grid-cols-[90px_1fr] gap-3">
+                          <img
+                            src={item.imagen}
+                            alt={item.titulo}
+                            className="h-24 w-24 rounded-2xl bg-purple-50 object-contain p-2"
+                          />
+
+                          <div>
+                            <label className="mb-1 block text-xs font-bold text-gray-600">
+                              Título de la pregunta
+                            </label>
+
+                            <input
+                              type="text"
+                              value={item.titulo}
+                              onChange={(e) =>
+                                actualizarTitulo(item.id, e.target.value)
+                              }
+                              className="w-full rounded-xl border-2 border-purple-100 px-3 py-2 text-sm font-bold outline-none"
+                              placeholder={`Ejemplo: ¿Cuántos conejos hay?`}
+                            />
+
+                            <button
+                              type="button"
+                              onClick={() => eliminarImagen(item.id)}
+                              className="mt-2 rounded-xl bg-red-100 px-3 py-2 text-sm font-bold text-red-600 hover:bg-red-200"
+                            >
+                              Eliminar imagen
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <p className="mt-3 text-xs font-bold text-gray-600">
+                  Las imágenes de esta sección se repetirán {numero} vez
+                  {numero > 1 ? "es" : ""} en el juego.
+                </p>
+              </div>
+            );
+          })}
         </div>
-      </div>
+      )}
 
       <div className="rounded-2xl bg-amber-50 p-4 text-sm font-bold text-amber-700">
-        Rondas del juego: {imagenesSeleccionadas.length}
+        Rondas del juego: {totalRondas}
       </div>
 
       <div className="flex justify-end gap-3 pt-2">

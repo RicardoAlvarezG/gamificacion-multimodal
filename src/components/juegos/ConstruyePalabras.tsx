@@ -14,16 +14,16 @@ type Palabra = {
 };
 
 const palabrasBase: Palabra[] = [
-  { palabra: "SOL", imagen: "sol.webp" },
-  { palabra: "CASA", imagen: "casa.webp" },
-  { palabra: "GATO", imagen: "gato.webp" },
-  { palabra: "PATO", imagen: "pato.webp" },
-  { palabra: "FLOR", imagen: "flor.webp" },
-  { palabra: "LUNA", imagen: "luna.webp" },
-  { palabra: "PEZ", imagen: "pez.webp" },
-  { palabra: "MANO", imagen: "mano.webp" },
-  { palabra: "MESA", imagen: "mesa.webp" },
-  { palabra: "VACA", imagen: "vaca.webp" },
+  { palabra: "SOL", imagen: "/juegos/palabras/sol.webp" },
+  { palabra: "CASA", imagen: "/juegos/palabras/casa.webp" },
+  { palabra: "GATO", imagen: "/juegos/palabras/gato.webp" },
+  { palabra: "PATO", imagen: "/juegos/palabras/pato.webp" },
+  { palabra: "FLOR", imagen: "/juegos/palabras/flor.webp" },
+  { palabra: "LUNA", imagen: "/juegos/palabras/luna.webp" },
+  { palabra: "PEZ", imagen: "/juegos/palabras/pez.webp" },
+  { palabra: "MANO", imagen: "/juegos/palabras/mano.webp" },
+  { palabra: "MESA", imagen: "/juegos/palabras/mesa.webp" },
+  { palabra: "VACA", imagen: "/juegos/palabras/vaca.webp" },
 ];
 
 const mezclar = <T,>(array: T[]) => [...array].sort(() => Math.random() - 0.5);
@@ -38,24 +38,20 @@ export default function ConstruyePalabras({
   onFinalizar,
   configuracion,
 }: Props) {
-  const usaPersonalizacion =
-    !!configuracion &&
-    configuracion.palabras.length > 0;
-
   const rondas = useMemo(() => {
-    if (usaPersonalizacion) {
+    if (configuracion?.palabras?.length) {
       return mezclar(
         configuracion.palabras
           .map((item) => ({
             palabra: normalizarPalabra(item.palabra),
-            imagen: item.imagen.replace("/juegos/palabras/", ""),
+            imagen: item.imagen,
           }))
           .filter((item) => item.palabra.length > 0)
       );
     }
 
     return mezclar(palabrasBase).slice(0, 5);
-  }, [configuracion, usaPersonalizacion]);
+  }, [configuracion]);
 
   const [rondaActual, setRondaActual] = useState(0);
   const [letrasSeleccionadas, setLetrasSeleccionadas] = useState<string[]>([]);
@@ -167,15 +163,13 @@ export default function ConstruyePalabras({
           Ronda {rondaActual + 1} de {rondas.length}
         </p>
 
-        <p className="mt-3 text-2xl font-bold text-purple-600">
-          {mensaje}
-        </p>
+        <p className="mt-3 text-2xl font-bold text-purple-600">{mensaje}</p>
       </div>
 
       <div className="mx-auto max-w-6xl rounded-3xl border-4 border-dashed border-purple-300 bg-white p-8">
         <div className="flex flex-col items-center gap-8">
           <img
-            src={`/juegos/palabras/${palabraActual.imagen}`}
+            src={palabraActual.imagen}
             alt={palabraActual.palabra}
             className="h-96 w-96 rounded-3xl bg-purple-50 p-4 object-contain shadow-md"
           />

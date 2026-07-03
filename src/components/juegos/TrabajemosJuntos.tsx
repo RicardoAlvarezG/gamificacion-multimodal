@@ -8,110 +8,82 @@ type Props = {
   configuracion?: ConfiguracionTrabajemosJuntos;
 };
 
-const imagenesEquipoPredeterminadas = [
-  "equipo1.webp",
-  "equipo2.webp",
-  "equipo3.webp",
-  "equipo4.webp",
-  "equipo5.webp",
-  "equipo6.webp",
-  "equipo7.webp",
-  "equipo8.webp",
-];
+type ImagenJuego = {
+  id: string;
+  nombre: string;
+  imagen: string;
+};
 
-const imagenesEquipoPersonalizables = Array.from(
-  { length: 20 },
-  (_, index) => `equipo${index + 1}.webp`
+const imagenesEquipoPredeterminadas: ImagenJuego[] = Array.from(
+  { length: 8 },
+  (_, index) => {
+    const numero = index + 1;
+
+    return {
+      id: `equipo${numero}`,
+      nombre: `Observa y elige quiénes trabajan juntos.`,
+      imagen: `/juegos/trabajemos-juntos/equipo${numero}.webp`,
+    };
+  }
 );
 
-const imagenesDistractorasPredeterminadas = [
-  "solo1.webp",
-  "solo2.webp",
-  "solo3.webp",
-  "solo4.webp",
-  "pelea1.webp",
-  "pelea2.webp",
-  "pelea3.webp",
-  "pelea4.webp",
-];
-
-const imagenesDistractorasPersonalizables = [
-  ...Array.from({ length: 8 }, (_, index) => `solo${index + 1}.webp`),
-  ...Array.from({ length: 8 }, (_, index) => `pelea${index + 1}.webp`),
+const imagenesDistractorasPredeterminadas: ImagenJuego[] = [
+  { id: "solo1", nombre: "Solo", imagen: "/juegos/trabajemos-juntos/solo1.webp" },
+  { id: "solo2", nombre: "Solo", imagen: "/juegos/trabajemos-juntos/solo2.webp" },
+  { id: "solo3", nombre: "Solo", imagen: "/juegos/trabajemos-juntos/solo3.webp" },
+  { id: "solo4", nombre: "Solo", imagen: "/juegos/trabajemos-juntos/solo4.webp" },
+  { id: "pelea1", nombre: "Conflicto", imagen: "/juegos/trabajemos-juntos/pelea1.webp" },
+  { id: "pelea2", nombre: "Conflicto", imagen: "/juegos/trabajemos-juntos/pelea2.webp" },
+  { id: "pelea3", nombre: "Conflicto", imagen: "/juegos/trabajemos-juntos/pelea3.webp" },
+  { id: "pelea4", nombre: "Conflicto", imagen: "/juegos/trabajemos-juntos/pelea4.webp" },
 ];
 
 const mezclar = <T,>(array: T[]) => [...array].sort(() => Math.random() - 0.5);
-
-const crearRondasPersonalizadas = (
-  situaciones: string[],
-  cantidadRondas: number
-) => {
-  const seleccionadas = situaciones
-    .map((id) => `${id}.webp`)
-    .filter((imagen) => imagenesEquipoPersonalizables.includes(imagen));
-
-  const rondas: string[] = [];
-
-  while (rondas.length < cantidadRondas) {
-    rondas.push(...mezclar(seleccionadas));
-  }
-
-  return rondas.slice(0, cantidadRondas);
-};
 
 export default function TrabajemosJuntos({
   onFinalizar,
   configuracion,
 }: Props) {
-  const usaPersonalizacion =
-    !!configuracion &&
-    configuracion.situaciones.length > 0 &&
-    configuracion.rondas >= configuracion.situaciones.length;
-
   const rondas = useMemo(() => {
-    if (usaPersonalizacion) {
-      return crearRondasPersonalizadas(
-        configuracion.situaciones,
-        configuracion.rondas
-      );
+    if (configuracion?.situaciones?.length) {
+      return mezclar(configuracion.situaciones);
     }
 
     return mezclar(imagenesEquipoPredeterminadas).slice(0, 4);
-  }, [configuracion, usaPersonalizacion]);
-
-  const imagenesDistractoras = usaPersonalizacion
-    ? imagenesDistractorasPersonalizables
-    : imagenesDistractorasPredeterminadas;
+  }, [configuracion]);
 
   const [rondaActual, setRondaActual] = useState(0);
   const [seleccionada, setSeleccionada] = useState<string | null>(null);
-  const [mensaje, setMensaje] = useState(
-    "Observa y elige quiénes trabajan juntos."
-  );
+  const [mensaje, setMensaje] = useState("");
   const [bloqueado, setBloqueado] = useState(false);
   const [juegoTerminado, setJuegoTerminado] = useState(false);
 
   const imagenCorrecta = rondas[rondaActual];
 
   const opciones = useMemo(() => {
-    const distractoresRandom = mezclar(imagenesDistractoras).slice(0, 2);
+    if (!imagenCorrecta) return [];
+
+    const distractoresRandom = mezclar(
+      imagenesDistractorasPredeterminadas
+    ).slice(0, 2);
+
     return mezclar([imagenCorrecta, ...distractoresRandom]);
-  }, [imagenCorrecta, imagenesDistractoras]);
+  }, [imagenCorrecta]);
 
-  const elegirOpcion = (imagen: string) => {
-    if (bloqueado || juegoTerminado) return;
+  const elegirOpcion = (imagen: ImagenJuego) => {
+    if (bloqueado || juegoTerminado || !imagenCorrecta) return;
 
-    setSeleccionada(imagen);
+    setSeleccionada(imagen.id);
     setBloqueado(true);
 
-    if (imagen === imagenCorrecta) {
+    if (imagen.id === imagenCorrecta.id) {
       setMensaje("¡Muy bien! Trabajar juntos es divertido.");
 
       setTimeout(() => {
         if (rondaActual + 1 < rondas.length) {
           setRondaActual((prev) => prev + 1);
           setSeleccionada(null);
-          setMensaje("Observa y elige quiénes trabajan juntos.");
+          setMensaje("");
           setBloqueado(false);
         } else {
           setJuegoTerminado(true);
@@ -122,7 +94,7 @@ export default function TrabajemosJuntos({
 
       setTimeout(() => {
         setSeleccionada(null);
-        setMensaje("Observa nuevamente y elige la acción correcta.");
+        setMensaje("");
         setBloqueado(false);
       }, 1000);
     }
@@ -143,10 +115,6 @@ export default function TrabajemosJuntos({
               Completaste todas las rondas de Trabajemos Juntos.
             </p>
 
-            <p className="mt-2 text-lg text-gray-600">
-              Ahora puedes finalizar para registrar las estrellas.
-            </p>
-
             <button
               onClick={onFinalizar}
               className="mt-8 rounded-2xl bg-purple-500 px-10 py-4 text-xl font-extrabold text-white shadow-lg transition hover:scale-105 hover:bg-purple-600"
@@ -155,6 +123,23 @@ export default function TrabajemosJuntos({
             </button>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (!imagenCorrecta) {
+    return (
+      <div className="rounded-3xl bg-white p-8 text-center">
+        <p className="text-2xl font-bold text-purple-700">
+          No hay imágenes para jugar.
+        </p>
+        <button
+          type="button"
+          onClick={onFinalizar}
+          className="mt-5 rounded-full bg-green-500 px-8 py-4 font-bold text-white"
+        >
+          Finalizar Juego
+        </button>
       </div>
     );
   }
@@ -177,17 +162,31 @@ export default function TrabajemosJuntos({
         </div>
 
         <div className="mb-6 rounded-3xl border-4 border-dashed border-purple-300 bg-white p-5 text-center shadow-md">
-          <p className="text-xl font-bold text-gray-700">{mensaje}</p>
+          <p className="text-xl font-bold text-gray-700">
+            {imagenCorrecta.nombre}
+          </p>
+
+          {mensaje && (
+            <p
+              className={`mt-2 text-2xl font-extrabold ${
+                mensaje.includes("Muy bien")
+                  ? "text-green-500"
+                  : "text-orange-500"
+              }`}
+            >
+              {mensaje}
+            </p>
+          )}
         </div>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
           {opciones.map((imagen, index) => {
-            const esSeleccionada = seleccionada === imagen;
-            const esCorrecta = imagen === imagenCorrecta;
+            const esSeleccionada = seleccionada === imagen.id;
+            const esCorrecta = imagen.id === imagenCorrecta.id;
 
             return (
               <button
-                key={`${imagen}-${index}`}
+                key={`${imagen.id}-${index}`}
                 onClick={() => elegirOpcion(imagen)}
                 disabled={bloqueado && !esSeleccionada}
                 className={`group rounded-3xl border-4 bg-white p-4 shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-2xl ${
@@ -198,16 +197,12 @@ export default function TrabajemosJuntos({
                     : "border-purple-200"
                 }`}
               >
-                <div className="flex h-[290px] items-center justify-center overflow-hidden rounded-2xl bg-purple-50">
+                <div className="flex h-[330px] items-center justify-center overflow-hidden rounded-2xl bg-purple-50">
                   <img
-                    src={`/juegos/trabajemos-juntos/${imagen}`}
-                    alt="Escena del juego"
+                    src={imagen.imagen}
+                    alt="Opción del juego"
                     className="h-full w-full object-contain"
                   />
-                </div>
-
-                <div className="mt-4 rounded-full bg-purple-100 py-2 text-lg font-extrabold text-purple-700">
-                  Elegir
                 </div>
               </button>
             );

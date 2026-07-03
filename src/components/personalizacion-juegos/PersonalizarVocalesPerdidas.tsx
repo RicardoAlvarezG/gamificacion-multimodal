@@ -1,9 +1,19 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
+
+type Vocal = "A" | "E" | "I" | "O" | "U";
+
+export type ImagenPersonalizadaVocal = {
+  id: string;
+  nombre: string;
+  vocal: Vocal;
+  imagen: string;
+};
 
 export type ConfiguracionVocalesPerdidas = {
-  vocales: string[];
+  vocales: Vocal[];
+  imagenesPersonalizadas?: ImagenPersonalizadaVocal[];
   imagenes: string[];
   rondas: number;
 };
@@ -14,114 +24,20 @@ type Props = {
   onCancelar: () => void;
 };
 
-const IMAGENES_POR_VOCAL = {
-  A: [
-    "abeja",
-    "aguacate",
-    "anillo",
-    "arana",
-    "arbol",
-    "arco",
-    "arcoiris",
-    "ardilla",
-    "arena",
-    "arroz",
-    "ambulancia",
-    "avion",
-    "avioneta",
-  ],
-  E: [
-    "elefante",
-    "escalera",
-    "escoba",
-    "escudo",
-    "escuela",
-    "escritorio",
-    "espejo",
-    "esponja",
-    "estrella",
-    "estufa",
-    "erizo",
-    "ensalada",
-    "enchufe",
-  ],
-  I: [
-    "iglesia",
-    "iguana",
-    "iglu",
-    "iceberg",
-    "iman",
-    "isla",
-    "insecto",
-    "incendio",
-    "impresora",
-    "instrumento",
-    "impermeable",
-    "inyeccion",
-    "invierno",
-  ],
-  O: [
-    "ojo",
-    "oso",
-    "oveja",
-    "oceano",
-    "ocho",
-    "olla",
-    "olivo",
-    "ombligo",
-    "oreja",
-    "oruga",
-    "orquesta",
-    "orquidea",
-    "ovni",
-  ],
-  U: [
-    "ukelele",
-    "unicornio",
-    "uva",
-    "uniforme",
-    "uno",
-    "urna",
-    "universo",
-    "utensilios",
-    "uña",
-    "uniforme_escolar",
-    "unicornio_bebe",
-    "uvas",
-    "ufo",
-  ],
-} as const;
-
-const VOCALES = ["A", "E", "I", "O", "U"] as const;
-
-type Vocal = (typeof VOCALES)[number];
-
-const nombreBonito = (texto: string) =>
-  texto
-    .replaceAll("_", " ")
-    .replace(/\b\w/g, (letra) => letra.toUpperCase());
+const VOCALES: Vocal[] = ["A", "E", "I", "O", "U"];
 
 export default function PersonalizarVocalesPerdidas({
   configuracionInicial,
   onGuardar,
   onCancelar,
 }: Props) {
-  const [vocalesSeleccionadas, setVocalesSeleccionadas] = useState<string[]>(
+  const [vocalesSeleccionadas, setVocalesSeleccionadas] = useState<Vocal[]>(
     configuracionInicial?.vocales ?? []
   );
 
-  const [imagenesSeleccionadas, setImagenesSeleccionadas] = useState<string[]>(
-    configuracionInicial?.imagenes ?? []
-  );
-
-  const imagenesDisponibles = useMemo(() => {
-    return vocalesSeleccionadas.flatMap((vocal) =>
-      IMAGENES_POR_VOCAL[vocal as Vocal].map((imagen) => ({
-        vocal,
-        imagen,
-      }))
-    );
-  }, [vocalesSeleccionadas]);
+  const [imagenesPersonalizadas, setImagenesPersonalizadas] = useState<
+    ImagenPersonalizadaVocal[]
+  >(configuracionInicial?.imagenesPersonalizadas ?? []);
 
   const alternarVocal = (vocal: Vocal) => {
     const existe = vocalesSeleccionadas.includes(vocal);
@@ -131,22 +47,42 @@ export default function PersonalizarVocalesPerdidas({
         actual.filter((item) => item !== vocal)
       );
 
-      setImagenesSeleccionadas((actual) =>
-        actual.filter(
-          (imagen) => !IMAGENES_POR_VOCAL[vocal].includes(imagen as never)
-        )
+      setImagenesPersonalizadas((actual) =>
+        actual.filter((imagen) => imagen.vocal !== vocal)
       );
+
       return;
     }
 
     setVocalesSeleccionadas((actual) => [...actual, vocal]);
   };
 
-  const alternarImagen = (imagen: string) => {
-    setImagenesSeleccionadas((actual) =>
-      actual.includes(imagen)
-        ? actual.filter((item) => item !== imagen)
-        : [...actual, imagen]
+  const subirImagen = (vocal: Vocal, archivo?: File) => {
+    if (!archivo) return;
+
+    const urlTemporal = URL.createObjectURL(archivo);
+
+    const nuevaImagen: ImagenPersonalizadaVocal = {
+      id: `${vocal}-${Date.now()}-${Math.random()}`,
+      nombre: archivo.name.replace(/\.[^/.]+$/, ""),
+      vocal,
+      imagen: urlTemporal,
+    };
+
+    setImagenesPersonalizadas((actual) => [...actual, nuevaImagen]);
+  };
+
+  const cambiarNombre = (id: string, nombre: string) => {
+    setImagenesPersonalizadas((actual) =>
+      actual.map((imagen) =>
+        imagen.id === id ? { ...imagen, nombre } : imagen
+      )
+    );
+  };
+
+  const eliminarImagen = (id: string) => {
+    setImagenesPersonalizadas((actual) =>
+      actual.filter((imagen) => imagen.id !== id)
     );
   };
 
@@ -156,15 +92,20 @@ export default function PersonalizarVocalesPerdidas({
       return;
     }
 
-    if (imagenesSeleccionadas.length === 0) {
-      alert("Selecciona al menos una imagen.");
+    const imagenesValidas = imagenesPersonalizadas.filter((imagen) =>
+      vocalesSeleccionadas.includes(imagen.vocal)
+    );
+
+    if (imagenesValidas.length === 0) {
+      alert("Sube al menos una imagen.");
       return;
     }
 
     onGuardar({
       vocales: vocalesSeleccionadas,
-      imagenes: imagenesSeleccionadas,
-      rondas: imagenesSeleccionadas.length,
+      imagenesPersonalizadas: imagenesValidas,
+      imagenes: [],
+      rondas: imagenesValidas.length,
     });
   };
 
@@ -199,59 +140,89 @@ export default function PersonalizarVocalesPerdidas({
 
       <div>
         <h3 className="mb-3 text-lg font-black text-purple-700">
-          Elige las imágenes
+          Sube imágenes para cada vocal
         </h3>
 
         {vocalesSeleccionadas.length === 0 ? (
           <p className="rounded-2xl bg-purple-50 p-4 text-sm font-semibold text-purple-500">
-            Primero selecciona una vocal para ver sus imágenes.
+            Primero selecciona una vocal para subir sus imágenes.
           </p>
         ) : (
-          <div className="max-h-[360px] space-y-5 overflow-y-auto pr-2">
-            {vocalesSeleccionadas.map((vocal) => (
-              <div key={vocal}>
-                <h4 className="mb-2 text-base font-black text-purple-600">
-                  Vocal {vocal}
-                </h4>
+          <div className="max-h-[420px] space-y-5 overflow-y-auto pr-2">
+            {vocalesSeleccionadas.map((vocal) => {
+              const imagenesDeVocal = imagenesPersonalizadas.filter(
+                (imagen) => imagen.vocal === vocal
+              );
 
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
-                  {imagenesDisponibles
-                    .filter((item) => item.vocal === vocal)
-                    .map(({ imagen }) => {
-                      const activo = imagenesSeleccionadas.includes(imagen);
+              return (
+                <div
+                  key={vocal}
+                  className="rounded-3xl border-2 border-purple-200 bg-purple-50 p-4"
+                >
+                  <h4 className="mb-3 text-base font-black text-purple-700">
+                    Vocal {vocal}
+                  </h4>
 
-                      return (
-                        <button
-                          key={imagen}
-                          type="button"
-                          onClick={() => alternarImagen(imagen)}
-                          className={`flex items-center gap-3 rounded-2xl border-2 p-3 text-left transition ${
-                            activo
-                              ? "border-purple-500 bg-purple-100"
-                              : "border-purple-200 bg-white hover:bg-purple-50"
-                          }`}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => subirImagen(vocal, e.target.files?.[0])}
+                    className="w-full rounded-xl bg-white px-4 py-3 font-bold text-slate-700"
+                  />
+
+                  {imagenesDeVocal.length > 0 && (
+                    <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+                      {imagenesDeVocal.map((imagen) => (
+                        <div
+                          key={imagen.id}
+                          className="rounded-2xl bg-white p-3 shadow-sm"
                         >
                           <img
-                            src={`/juegos/vocales/${imagen}.webp`}
-                            alt={nombreBonito(imagen)}
-                            className="h-14 w-14 object-contain"
+                            src={imagen.imagen}
+                            alt={imagen.nombre}
+                            className="mx-auto h-28 w-full object-contain"
                           />
 
-                          <span className="text-sm font-black text-purple-700">
-                            {nombreBonito(imagen)}
-                          </span>
-                        </button>
-                      );
-                    })}
+                          <input
+                            type="text"
+                            value={imagen.nombre}
+                            onChange={(e) =>
+                              cambiarNombre(imagen.id, e.target.value)
+                            }
+                            className="mt-3 w-full rounded-xl border-2 border-purple-100 px-3 py-2 text-sm font-bold outline-none"
+                            placeholder="Nombre de la imagen"
+                          />
+
+                          <button
+                            type="button"
+                            onClick={() => eliminarImagen(imagen.id)}
+                            className="mt-2 w-full rounded-xl bg-red-100 px-3 py-2 text-sm font-bold text-red-600 hover:bg-red-200"
+                          >
+                            Eliminar imagen
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
 
       <div className="rounded-2xl bg-amber-50 p-4 text-sm font-bold text-amber-700">
-        Rondas del juego: {imagenesSeleccionadas.length}
+        Rondas del juego:{" "}
+        {
+          imagenesPersonalizadas.filter((imagen) =>
+            vocalesSeleccionadas.includes(imagen.vocal)
+          ).length
+        }
+      </div>
+
+      <div className="rounded-2xl bg-purple-50 p-4 text-sm font-bold text-purple-600">
+        Las imágenes subidas son temporales. No se guardarán en la base de datos
+        ni en el proyecto.
       </div>
 
       <div className="flex justify-end gap-3 pt-2">

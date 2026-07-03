@@ -2,15 +2,17 @@
 
 import { useState } from "react";
 
-export type ConfiguracionAsociacionImagenPalabra = {
-  modo: "IMAGEN_A_PALABRA" | "PALABRA_A_IMAGEN";
-  imagenes: string[];
-  rondas: number;
+export type ImagenPersonalizadaAsociacion = {
+  id: string;
+  palabra: string;
+  imagen: string;
 };
 
-type ImagenDisponible = {
-  id: string;
-  nombre: string;
+export type ConfiguracionAsociacionImagenPalabra = {
+  modo: "IMAGEN_A_PALABRA" | "PALABRA_A_IMAGEN";
+  imagenesPersonalizadas: ImagenPersonalizadaAsociacion[];
+  imagenes: string[];
+  rondas: number;
 };
 
 type Props = {
@@ -19,73 +21,72 @@ type Props = {
   onCancelar: () => void;
 };
 
-const IMAGENES_DISPONIBLES: ImagenDisponible[] = [
-  { id: "abeja", nombre: "Abeja" },
-  { id: "barco", nombre: "Barco" },
-  { id: "carro", nombre: "Carro" },
-  { id: "casa", nombre: "Casa" },
-  { id: "estrella", nombre: "Estrella" },
-  { id: "flor", nombre: "Flor" },
-  { id: "gato", nombre: "Gato" },
-  { id: "luna", nombre: "Luna" },
-  { id: "mano", nombre: "Mano" },
-  { id: "manzana", nombre: "Manzana" },
-  { id: "mesa", nombre: "Mesa" },
-  { id: "pato", nombre: "Pato" },
-  { id: "pez", nombre: "Pez" },
-  { id: "sol", nombre: "Sol" },
-  { id: "vaca", nombre: "Vaca" },
-
-  // Nuevas imágenes
-  { id: "perro", nombre: "Perro" },
-  { id: "arbol", nombre: "Árbol" },
-  { id: "pelota", nombre: "Pelota" },
-  { id: "mariposa", nombre: "Mariposa" },
-  { id: "zapato", nombre: "Zapato" },
-];
-
 export default function PersonalizarAsociacionImagenPalabra({
   configuracionInicial,
   onGuardar,
   onCancelar,
 }: Props) {
-  const [modo, setModo] = useState<
-    "IMAGEN_A_PALABRA" | "PALABRA_A_IMAGEN"
-  >(configuracionInicial?.modo ?? "IMAGEN_A_PALABRA");
-
-  const [imagenesSeleccionadas, setImagenesSeleccionadas] = useState<string[]>(
-    configuracionInicial?.imagenes ??
-      IMAGENES_DISPONIBLES.map((imagen) => imagen.id)
+  const [modo, setModo] = useState<"IMAGEN_A_PALABRA" | "PALABRA_A_IMAGEN">(
+    configuracionInicial?.modo ?? "IMAGEN_A_PALABRA"
   );
 
-  const alternarImagen = (id: string) => {
-    setImagenesSeleccionadas((prev) =>
-      prev.includes(id)
-        ? prev.filter((img) => img !== id)
-        : [...prev, id]
+  const [imagenesPersonalizadas, setImagenesPersonalizadas] = useState<
+    ImagenPersonalizadaAsociacion[]
+  >(configuracionInicial?.imagenesPersonalizadas ?? []);
+
+  const subirImagen = (archivo?: File) => {
+    if (!archivo) return;
+
+    const nuevaImagen: ImagenPersonalizadaAsociacion = {
+      id: `subida-${Date.now()}-${Math.random()}`,
+      palabra: "",
+      imagen: URL.createObjectURL(archivo),
+    };
+
+    setImagenesPersonalizadas((actuales) => [...actuales, nuevaImagen]);
+  };
+
+  const actualizarPalabra = (id: string, palabra: string) => {
+    const textoLimpio = palabra
+      .toUpperCase()
+      .replace(/[^A-ZÁÉÍÓÚÜÑ]/g, "");
+
+    setImagenesPersonalizadas((actuales) =>
+      actuales.map((item) =>
+        item.id === id ? { ...item, palabra: textoLimpio } : item
+      )
+    );
+  };
+
+  const eliminarImagen = (id: string) => {
+    setImagenesPersonalizadas((actuales) =>
+      actuales.filter((item) => item.id !== id)
     );
   };
 
   const guardar = () => {
-    if (imagenesSeleccionadas.length === 0) {
-      alert("Selecciona al menos una imagen.");
+    if (imagenesPersonalizadas.length === 0) {
+      alert("Sube al menos una imagen.");
+      return;
+    }
+
+    if (imagenesPersonalizadas.some((item) => item.palabra.trim() === "")) {
+      alert("Todas las imágenes deben tener una palabra.");
       return;
     }
 
     onGuardar({
       modo,
-      imagenes: imagenesSeleccionadas,
-      rondas: imagenesSeleccionadas.length,
+      imagenesPersonalizadas,
+      imagenes: [],
+      rondas: imagenesPersonalizadas.length,
     });
   };
 
   return (
     <div className="space-y-6">
-
       <div>
-        <h3 className="font-semibold text-gray-700 mb-2">
-          Modo de juego
-        </h3>
+        <h3 className="font-semibold text-gray-700 mb-2">Modo de juego</h3>
 
         <div className="space-y-2">
           <label className="flex items-center gap-2 cursor-pointer">
@@ -108,37 +109,73 @@ export default function PersonalizarAsociacionImagenPalabra({
         </div>
       </div>
 
-      <div>
-        <h3 className="font-semibold text-gray-700 mb-3">
-          Imágenes disponibles
-        </h3>
+      <div className="rounded-3xl border-2 border-purple-100 bg-purple-50 p-4">
+        <h3 className="mb-3 font-bold text-purple-700">Subir imagen</h3>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-          {IMAGENES_DISPONIBLES.map((imagen) => (
-            <label
-              key={imagen.id}
-              className="flex items-center gap-2 border rounded-lg p-2 cursor-pointer hover:bg-gray-50"
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => {
+            subirImagen(e.target.files?.[0]);
+            e.currentTarget.value = "";
+          }}
+          className="w-full rounded-xl bg-white px-4 py-3 font-bold text-slate-700"
+        />
+      </div>
+
+      <div className="rounded-2xl bg-purple-50 p-4 text-sm font-bold text-purple-700">
+        Rondas: {imagenesPersonalizadas.length}
+      </div>
+
+      {imagenesPersonalizadas.length > 0 && (
+        <div className="max-h-[360px] space-y-3 overflow-y-auto pr-2">
+          {imagenesPersonalizadas.map((item, index) => (
+            <div
+              key={item.id}
+              className="rounded-3xl border-2 border-purple-100 bg-white p-3 shadow-sm"
             >
-              <input
-                type="checkbox"
-                checked={imagenesSeleccionadas.includes(imagen.id)}
-                onChange={() => alternarImagen(imagen.id)}
-              />
-              <span>{imagen.nombre}</span>
-            </label>
+              <p className="mb-2 text-sm font-extrabold text-purple-700">
+                Ronda {index + 1}
+              </p>
+
+              <div className="grid grid-cols-[90px_1fr] gap-3">
+                <img
+                  src={item.imagen}
+                  alt={item.palabra || `Ronda ${index + 1}`}
+                  className="h-24 w-24 rounded-2xl bg-purple-50 object-contain"
+                />
+
+                <div>
+                  <label className="mb-1 block text-xs font-bold text-gray-600">
+                    Nombre o palabra
+                  </label>
+
+                  <input
+                    type="text"
+                    value={item.palabra}
+                    onChange={(e) =>
+                      actualizarPalabra(item.id, e.target.value)
+                    }
+                    className="w-full rounded-xl border-2 border-purple-100 px-3 py-2 text-sm font-extrabold uppercase outline-none"
+                    placeholder="Ejemplo: PATO"
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => eliminarImagen(item.id)}
+                    className="mt-2 rounded-xl bg-red-100 px-3 py-2 text-sm font-bold text-red-600 hover:bg-red-200"
+                  >
+                    Eliminar imagen
+                  </button>
+                </div>
+              </div>
+            </div>
           ))}
         </div>
-      </div>
-
-      <div className="text-sm text-gray-600">
-        Rondas: <strong>{imagenesSeleccionadas.length}</strong>
-      </div>
+      )}
 
       <div className="flex justify-end gap-3">
-        <button
-          onClick={onCancelar}
-          className="px-4 py-2 rounded-lg border"
-        >
+        <button onClick={onCancelar} className="px-4 py-2 rounded-lg border">
           Cancelar
         </button>
 
@@ -149,7 +186,6 @@ export default function PersonalizarAsociacionImagenPalabra({
           Guardar
         </button>
       </div>
-
     </div>
   );
 }

@@ -2,9 +2,15 @@
 
 import { useState } from "react";
 
+export type RondaPersonalizadaSecuencia = {
+  titulo: string;
+  imagen1: string;
+  imagen2: string;
+};
+
 export type ConfiguracionSecuenciasDivertidas = {
-  grupo: string;
   rondas: number;
+  rondasPersonalizadas?: RondaPersonalizadaSecuencia[];
 };
 
 type Props = {
@@ -13,61 +19,85 @@ type Props = {
   onCancelar: () => void;
 };
 
-const GRUPOS = [
-  {
-    id: "formas",
-    nombre: "Formas",
-    descripcion: "Círculos, cuadrados y triángulos de colores.",
-  },
-  {
-    id: "objetos",
-    nombre: "Objetos",
-    descripcion: "Lápiz, libro, mochila, pelota y tijera.",
-  },
-  {
-    id: "transportes",
-    nombre: "Transportes",
-    descripcion: "Auto, bicicleta, bus, avión y barco.",
-  },
-  {
-    id: "animales",
-    nombre: "Animales",
-    descripcion: "Perro, gato, pato, vaca y conejo.",
-  },
-  {
-    id: "frutas",
-    nombre: "Frutas",
-    descripcion: "Manzana, pera, plátano, uva y fresa.",
-  },
-  {
-    id: "juguetes",
-    nombre: "Juguetes",
-    descripcion: "Carro, muñeca, peluche, bloques y trompo.",
-  },
-];
+const MAX_RONDAS = 6;
+
+const crearRondaVacia = (): RondaPersonalizadaSecuencia => ({
+  titulo: "Observa la secuencia y elige qué imagen sigue",
+  imagen1: "",
+  imagen2: "",
+});
 
 export default function PersonalizarSecuenciasDivertidas({
   configuracionInicial,
   onGuardar,
   onCancelar,
 }: Props) {
-  const [grupo, setGrupo] = useState(
-    configuracionInicial?.grupo ?? "formas"
+  const rondasIniciales =
+    configuracionInicial?.rondasPersonalizadas &&
+    configuracionInicial.rondasPersonalizadas.length > 0
+      ? configuracionInicial.rondasPersonalizadas
+      : [crearRondaVacia()];
+
+  const [numeroRondas, setNumeroRondas] = useState(
+    configuracionInicial?.rondas ?? rondasIniciales.length
   );
 
-  const [rondas, setRondas] = useState(
-    configuracionInicial?.rondas ?? 3
-  );
+  const [rondasPersonalizadas, setRondasPersonalizadas] =
+    useState<RondaPersonalizadaSecuencia[]>(rondasIniciales);
+
+  const cambiarNumeroRondas = (cantidad: number) => {
+    setNumeroRondas(cantidad);
+
+    setRondasPersonalizadas((actuales) => {
+      const nuevas = [...actuales];
+
+      while (nuevas.length < cantidad) {
+        nuevas.push(crearRondaVacia());
+      }
+
+      return nuevas.slice(0, cantidad);
+    });
+  };
+
+  const actualizarTitulo = (index: number, titulo: string) => {
+    setRondasPersonalizadas((actuales) =>
+      actuales.map((ronda, i) =>
+        i === index ? { ...ronda, titulo } : ronda
+      )
+    );
+  };
+
+  const subirImagen = (
+    index: number,
+    campo: "imagen1" | "imagen2",
+    archivo?: File
+  ) => {
+    if (!archivo) return;
+
+    const urlTemporal = URL.createObjectURL(archivo);
+
+    setRondasPersonalizadas((actuales) =>
+      actuales.map((ronda, i) =>
+        i === index ? { ...ronda, [campo]: urlTemporal } : ronda
+      )
+    );
+  };
 
   const guardar = () => {
-    if (rondas < 1) {
-      alert("El número de rondas debe ser mayor que cero.");
+    const rondasValidas = rondasPersonalizadas.slice(0, numeroRondas);
+
+    const faltaImagen = rondasValidas.some(
+      (ronda) => !ronda.imagen1 || !ronda.imagen2
+    );
+
+    if (faltaImagen) {
+      alert("Debes subir las dos imágenes en cada ronda.");
       return;
     }
 
     onGuardar({
-      grupo,
-      rondas,
+      rondas: numeroRondas,
+      rondasPersonalizadas: rondasValidas,
     });
   };
 
@@ -79,8 +109,8 @@ export default function PersonalizarSecuenciasDivertidas({
         </h3>
 
         <p className="text-sm font-semibold text-gray-600">
-          Selecciona el grupo de imágenes que se utilizará para generar
-          las secuencias del juego.
+          Elige el número de rondas. En cada ronda sube dos imágenes para
+          formar la secuencia.
         </p>
       </div>
 
@@ -89,40 +119,94 @@ export default function PersonalizarSecuenciasDivertidas({
           Número de rondas
         </label>
 
-        <input
-          type="number"
-          min={1}
-          value={rondas}
-          onChange={(e) => setRondas(Number(e.target.value))}
+        <select
+          value={numeroRondas}
+          onChange={(e) => cambiarNumeroRondas(Number(e.target.value))}
           className="mt-2 w-full rounded-2xl border border-purple-200 px-4 py-3 font-bold outline-none focus:ring-2 focus:ring-purple-300"
-        />
+        >
+          {Array.from({ length: MAX_RONDAS }, (_, index) => index + 1).map(
+            (numero) => (
+              <option key={numero} value={numero}>
+                {numero} ronda{numero > 1 ? "s" : ""}
+              </option>
+            )
+          )}
+        </select>
       </div>
 
-      <div className="grid gap-3">
-        {GRUPOS.map((item) => {
-          const activo = grupo === item.id;
+      <div className="max-h-[480px] space-y-4 overflow-y-auto pr-2">
+        {rondasPersonalizadas.slice(0, numeroRondas).map((ronda, index) => (
+          <div
+            key={index}
+            className="rounded-3xl border-2 border-purple-100 bg-purple-50 p-4"
+          >
+            <h4 className="mb-3 text-base font-extrabold text-purple-700">
+              Ronda {index + 1}
+            </h4>
 
-          return (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => setGrupo(item.id)}
-              className={`rounded-3xl border-4 p-5 text-left transition ${
-                activo
-                  ? "border-purple-400 bg-purple-50 shadow-lg"
-                  : "border-gray-100 bg-white hover:border-purple-200"
-              }`}
-            >
-              <h4 className="text-lg font-extrabold text-purple-700">
-                {item.nombre}
-              </h4>
+            <label className="mb-1 block text-xs font-bold text-gray-600">
+              Título de la ronda
+            </label>
 
-              <p className="mt-1 text-sm font-semibold text-gray-600">
-                {item.descripcion}
-              </p>
-            </button>
-          );
-        })}
+            <input
+              type="text"
+              value={ronda.titulo}
+              onChange={(e) => actualizarTitulo(index, e.target.value)}
+              className="mb-4 w-full rounded-xl border-2 border-purple-100 px-3 py-2 text-sm font-bold outline-none"
+              placeholder="Ejemplo: Observa la secuencia"
+            />
+
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-xs font-bold text-gray-600">
+                  Imagen 1
+                </label>
+
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    subirImagen(index, "imagen1", e.target.files?.[0]);
+                    e.currentTarget.value = "";
+                  }}
+                  className="w-full rounded-xl bg-white px-4 py-3 text-sm font-bold text-slate-700"
+                />
+
+                {ronda.imagen1 && (
+                  <img
+                    src={ronda.imagen1}
+                    alt={`Imagen 1 ronda ${index + 1}`}
+                    className="mt-3 h-32 w-full rounded-2xl bg-white object-contain p-2"
+                  />
+                )}
+              </div>
+
+              <div>
+                <label className="mb-2 block text-xs font-bold text-gray-600">
+                  Imagen 2
+                </label>
+
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    subirImagen(index, "imagen2", e.target.files?.[0]);
+                    e.currentTarget.value = "";
+                  }}
+                  className="w-full rounded-xl bg-white px-4 py-3 text-sm font-bold text-slate-700"
+                />
+
+                {ronda.imagen2 && (
+                  <img
+                    src={ronda.imagen2}
+                    alt={`Imagen 2 ronda ${index + 1}`}
+                    className="mt-3 h-32 w-full rounded-2xl bg-white object-contain p-2"
+                  />
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
 
       <div className="flex justify-end gap-3 pt-2">

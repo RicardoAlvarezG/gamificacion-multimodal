@@ -6,6 +6,7 @@ export type PalabraPersonalizada = {
   id: string;
   palabra: string;
   imagen: string;
+  esSubida?: boolean;
 };
 
 export type ConfiguracionConstruyePalabras = {
@@ -29,22 +30,6 @@ const PALABRAS_DISPONIBLES: PalabraPersonalizada[] = [
   { id: "mano", palabra: "MANO", imagen: "/juegos/palabras/mano.webp" },
   { id: "mesa", palabra: "MESA", imagen: "/juegos/palabras/mesa.webp" },
   { id: "vaca", palabra: "VACA", imagen: "/juegos/palabras/vaca.webp" },
-
-  { id: "aro", palabra: "ARO", imagen: "/juegos/palabras/aro.webp" },
-  { id: "ave", palabra: "AVE", imagen: "/juegos/palabras/ave.webp" },
-  { id: "boca", palabra: "BOCA", imagen: "/juegos/palabras/boca.webp" },
-  { id: "cama", palabra: "CAMA", imagen: "/juegos/palabras/cama.webp" },
-  { id: "copa", palabra: "COPA", imagen: "/juegos/palabras/copa.webp" },
-  { id: "dedo", palabra: "DEDO", imagen: "/juegos/palabras/dedo.webp" },
-  { id: "dado", palabra: "DADO", imagen: "/juegos/palabras/dado.webp" },
-  { id: "foco", palabra: "FOCO", imagen: "/juegos/palabras/foco.webp" },
-  { id: "hoja", palabra: "HOJA", imagen: "/juegos/palabras/hoja.webp" },
-  { id: "lupa", palabra: "LUPA", imagen: "/juegos/palabras/lupa.webp" },
-  { id: "nube", palabra: "NUBE", imagen: "/juegos/palabras/nube.webp" },
-  { id: "oso", palabra: "OSO", imagen: "/juegos/palabras/oso.webp" },
-  { id: "pera", palabra: "PERA", imagen: "/juegos/palabras/pera.webp" },
-  { id: "sopa", palabra: "SOPA", imagen: "/juegos/palabras/sopa.webp" },
-  { id: "taza", palabra: "TAZA", imagen: "/juegos/palabras/taza.webp" },
 ];
 
 const idsIniciales = ["sol", "casa", "gato", "pato", "flor"];
@@ -63,13 +48,11 @@ export default function PersonalizarConstruyePalabras({
     palabras.some((item) => item.id === id);
 
   const alternarPalabra = (item: PalabraPersonalizada) => {
-    setPalabras((actuales) => {
-      if (actuales.some((palabra) => palabra.id === item.id)) {
-        return actuales.filter((palabra) => palabra.id !== item.id);
-      }
-
-      return [...actuales, item];
-    });
+    setPalabras((actuales) =>
+      actuales.some((palabra) => palabra.id === item.id)
+        ? actuales.filter((palabra) => palabra.id !== item.id)
+        : [...actuales, item]
+    );
   };
 
   const actualizarTexto = (id: string, nuevoTexto: string) => {
@@ -84,20 +67,35 @@ export default function PersonalizarConstruyePalabras({
     );
   };
 
+  const subirImagen = (archivo?: File) => {
+    if (!archivo) return;
+
+    const nuevaImagen: PalabraPersonalizada = {
+      id: `subida-${Date.now()}-${Math.random()}`,
+      palabra: "",
+      imagen: URL.createObjectURL(archivo),
+      esSubida: true,
+    };
+
+    setPalabras((actuales) => [...actuales, nuevaImagen]);
+  };
+
+  const eliminarImagen = (id: string) => {
+    setPalabras((actuales) => actuales.filter((item) => item.id !== id));
+  };
+
   const guardar = () => {
     if (palabras.length === 0) {
-      alert("Selecciona al menos una imagen.");
+      alert("Selecciona o sube al menos una imagen.");
       return;
     }
 
     if (palabras.some((item) => item.palabra.trim().length === 0)) {
-      alert("Todas las imágenes seleccionadas deben tener una palabra.");
+      alert("Todas las imágenes deben tener una palabra.");
       return;
     }
 
-    onGuardar({
-      palabras,
-    });
+    onGuardar({ palabras });
   };
 
   return (
@@ -107,34 +105,34 @@ export default function PersonalizarConstruyePalabras({
           Personalizar Construye Palabras
         </h3>
         <p className="text-sm font-semibold text-gray-600">
-          Selecciona las imágenes y modifica la palabra que el niño deberá formar.
+          Selecciona imágenes o sube nuevas. La palabra escrita será la que el
+          niño deberá ordenar.
         </p>
       </div>
 
       <div className="rounded-2xl bg-purple-50 p-4 text-sm font-bold text-purple-700">
-        Rondas: {palabras.length}. El número de rondas se calcula automáticamente según las imágenes seleccionadas.
+        Rondas: {palabras.length}
       </div>
 
-      <div className="grid max-h-[450px] grid-cols-2 gap-4 overflow-y-auto pr-2 md:grid-cols-4">
-        {PALABRAS_DISPONIBLES.map((item) => {
-          const activo = estaSeleccionada(item.id);
-          const palabraActual =
-            palabras.find((palabra) => palabra.id === item.id)?.palabra ??
-            item.palabra;
+      <div>
+        <h3 className="mb-3 text-base font-extrabold text-purple-700">
+          Imágenes existentes
+        </h3>
 
-          return (
-            <div
-              key={item.id}
-              className={`rounded-3xl border-4 bg-white p-3 transition ${
-                activo
-                  ? "border-purple-400 shadow-lg"
-                  : "border-gray-100 opacity-70"
-              }`}
-            >
+        <div className="grid max-h-[330px] grid-cols-2 gap-4 overflow-y-auto pr-2 md:grid-cols-4">
+          {PALABRAS_DISPONIBLES.map((item) => {
+            const activo = estaSeleccionada(item.id);
+
+            return (
               <button
+                key={item.id}
                 type="button"
                 onClick={() => alternarPalabra(item)}
-                className="w-full"
+                className={`rounded-3xl border-4 bg-white p-3 transition ${
+                  activo
+                    ? "border-purple-400 shadow-lg"
+                    : "border-gray-100 opacity-70"
+                }`}
               >
                 <img
                   src={item.imagen}
@@ -142,23 +140,88 @@ export default function PersonalizarConstruyePalabras({
                   className="h-24 w-full object-contain"
                 />
 
-                <p className={`mt-2 text-xs font-bold ${activo ? "text-purple-600" : "text-gray-400"}`}>
+                <p
+                  className={`mt-2 text-xs font-bold ${
+                    activo ? "text-purple-600" : "text-gray-400"
+                  }`}
+                >
                   {activo ? "Seleccionado" : "Tocar para elegir"}
                 </p>
               </button>
-
-              <input
-                type="text"
-                value={palabraActual}
-                disabled={!activo}
-                maxLength={6}
-                onChange={(e) => actualizarTexto(item.id, e.target.value)}
-                className="mt-2 w-full rounded-xl border border-purple-200 px-3 py-2 text-center text-sm font-extrabold uppercase outline-none disabled:bg-gray-100 disabled:text-gray-400"
-              />
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
+
+      <div className="rounded-3xl border-2 border-purple-100 bg-purple-50 p-4">
+        <h3 className="mb-3 text-base font-extrabold text-purple-700">
+          Subir nueva imagen
+        </h3>
+
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => {
+            subirImagen(e.target.files?.[0]);
+            e.currentTarget.value = "";
+          }}
+          className="w-full rounded-xl bg-white px-4 py-3 font-bold text-slate-700"
+        />
+      </div>
+
+      {palabras.length > 0 && (
+        <div>
+          <h3 className="mb-3 text-base font-extrabold text-purple-700">
+            Palabra para cada ronda
+          </h3>
+
+          <div className="max-h-[320px] space-y-3 overflow-y-auto pr-2">
+            {palabras.map((item, index) => (
+              <div
+                key={item.id}
+                className="rounded-3xl border-2 border-purple-100 bg-white p-3 shadow-sm"
+              >
+                <p className="mb-2 text-sm font-extrabold text-purple-700">
+                  Ronda {index + 1}
+                </p>
+
+                <div className="grid grid-cols-[90px_1fr] gap-3">
+                  <img
+                    src={item.imagen}
+                    alt={item.palabra || `Ronda ${index + 1}`}
+                    className="h-24 w-24 rounded-2xl bg-purple-50 object-contain"
+                  />
+
+                  <div>
+                    <label className="mb-1 block text-xs font-bold text-gray-600">
+                      Palabra que deberá formar
+                    </label>
+
+                    <input
+                      type="text"
+                      value={item.palabra}
+                      maxLength={8}
+                      onChange={(e) => actualizarTexto(item.id, e.target.value)}
+                      className="w-full rounded-xl border-2 border-purple-100 px-3 py-2 text-sm font-extrabold uppercase outline-none focus:border-purple-300"
+                      placeholder="Ejemplo: PATO"
+                    />
+
+                    {item.esSubida && (
+                      <button
+                        type="button"
+                        onClick={() => eliminarImagen(item.id)}
+                        className="mt-2 rounded-xl bg-red-100 px-3 py-2 text-sm font-bold text-red-600 hover:bg-red-200"
+                      >
+                        Eliminar imagen
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="flex justify-end gap-3 pt-3">
         <button

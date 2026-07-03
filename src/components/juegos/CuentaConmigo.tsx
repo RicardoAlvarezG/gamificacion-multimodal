@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import type { ConfiguracionCuentaConmigo } from "../personalizacion-juegos/PersonalizarCuentaConmigo";
 
 type Ficha = {
+  titulo: string;
   objeto: string;
   cantidad: number;
   imagen: string;
@@ -18,72 +19,97 @@ type Props = {
   onFinalizar: () => void;
 };
 
-const objetosDisponibles = [
-  "auto",
-  "avion",
-  "balon",
-  "barco",
-  "conejo",
-  "flor",
-  "gato",
-  "helado",
-  "lapiz",
-  "libro",
-  "manzana",
-  "mariposa",
-  "oso",
-  "paleta",
-  "pelota",
-  "pez",
-  "pollo",
-  "sol",
-  "tren",
-  "vaca",
-];
-
-const nombresObjeto: Record<string, string> = {
-  auto: "autos",
-  avion: "aviones",
-  balon: "balones",
-  barco: "barcos",
-  conejo: "conejos",
-  flor: "flores",
-  gato: "gatos",
-  helado: "helados",
-  lapiz: "lápices",
-  libro: "libros",
-  manzana: "manzanas",
-  mariposa: "mariposas",
-  oso: "osos",
-  paleta: "paletas",
-  pelota: "pelotas",
-  pez: "peces",
-  pollo: "pollos",
-  sol: "soles",
-  tren: "trenes",
-  vaca: "vacas",
-};
-
 const fichasBase: Ficha[] = [
-  { objeto: "patos", cantidad: 1, imagen: "/juegos/conteo/pato1.webp" },
-  { objeto: "carros", cantidad: 1, imagen: "/juegos/conteo/carro1.webp" },
-  { objeto: "árboles", cantidad: 1, imagen: "/juegos/conteo/arbol1.webp" },
-
-  { objeto: "manzanas", cantidad: 2, imagen: "/juegos/conteo/manzana2.webp" },
-  { objeto: "pelotas", cantidad: 2, imagen: "/juegos/conteo/pelota2.webp" },
-  { objeto: "lápices", cantidad: 2, imagen: "/juegos/conteo/lapiz2.webp" },
-
-  { objeto: "estrellas", cantidad: 3, imagen: "/juegos/conteo/estrella3.webp" },
-  { objeto: "flores", cantidad: 3, imagen: "/juegos/conteo/flor3.webp" },
-  { objeto: "peces", cantidad: 3, imagen: "/juegos/conteo/pez3.webp" },
-
-  { objeto: "globos", cantidad: 4, imagen: "/juegos/conteo/globo4.webp" },
-  { objeto: "mariposas", cantidad: 4, imagen: "/juegos/conteo/mariposa4.webp" },
-  { objeto: "zapatos", cantidad: 4, imagen: "/juegos/conteo/zapato4.webp" },
-
-  { objeto: "bananas", cantidad: 5, imagen: "/juegos/conteo/banana5.webp" },
-  { objeto: "corazones", cantidad: 5, imagen: "/juegos/conteo/corazon5.webp" },
-  { objeto: "libros", cantidad: 5, imagen: "/juegos/conteo/libro5.webp" },
+  {
+    titulo: "¿Cuántos patos hay en la imagen?",
+    objeto: "patos",
+    cantidad: 1,
+    imagen: "/juegos/conteo/pato1.webp",
+  },
+  {
+    titulo: "¿Cuántos carros hay en la imagen?",
+    objeto: "carros",
+    cantidad: 1,
+    imagen: "/juegos/conteo/carro1.webp",
+  },
+  {
+    titulo: "¿Cuántos árboles hay en la imagen?",
+    objeto: "árboles",
+    cantidad: 1,
+    imagen: "/juegos/conteo/arbol1.webp",
+  },
+  {
+    titulo: "¿Cuántas manzanas hay en la imagen?",
+    objeto: "manzanas",
+    cantidad: 2,
+    imagen: "/juegos/conteo/manzana2.webp",
+  },
+  {
+    titulo: "¿Cuántas pelotas hay en la imagen?",
+    objeto: "pelotas",
+    cantidad: 2,
+    imagen: "/juegos/conteo/pelota2.webp",
+  },
+  {
+    titulo: "¿Cuántos lápices hay en la imagen?",
+    objeto: "lápices",
+    cantidad: 2,
+    imagen: "/juegos/conteo/lapiz2.webp",
+  },
+  {
+    titulo: "¿Cuántas estrellas hay en la imagen?",
+    objeto: "estrellas",
+    cantidad: 3,
+    imagen: "/juegos/conteo/estrella3.webp",
+  },
+  {
+    titulo: "¿Cuántas flores hay en la imagen?",
+    objeto: "flores",
+    cantidad: 3,
+    imagen: "/juegos/conteo/flor3.webp",
+  },
+  {
+    titulo: "¿Cuántos peces hay en la imagen?",
+    objeto: "peces",
+    cantidad: 3,
+    imagen: "/juegos/conteo/pez3.webp",
+  },
+  {
+    titulo: "¿Cuántos globos hay en la imagen?",
+    objeto: "globos",
+    cantidad: 4,
+    imagen: "/juegos/conteo/globo4.webp",
+  },
+  {
+    titulo: "¿Cuántas mariposas hay en la imagen?",
+    objeto: "mariposas",
+    cantidad: 4,
+    imagen: "/juegos/conteo/mariposa4.webp",
+  },
+  {
+    titulo: "¿Cuántos zapatos hay en la imagen?",
+    objeto: "zapatos",
+    cantidad: 4,
+    imagen: "/juegos/conteo/zapato4.webp",
+  },
+  {
+    titulo: "¿Cuántas bananas hay en la imagen?",
+    objeto: "bananas",
+    cantidad: 5,
+    imagen: "/juegos/conteo/banana5.webp",
+  },
+  {
+    titulo: "¿Cuántos corazones hay en la imagen?",
+    objeto: "corazones",
+    cantidad: 5,
+    imagen: "/juegos/conteo/corazon5.webp",
+  },
+  {
+    titulo: "¿Cuántos libros hay en la imagen?",
+    objeto: "libros",
+    cantidad: 5,
+    imagen: "/juegos/conteo/libro5.webp",
+  },
 ];
 
 const numerosImagen: Record<number, string> = {
@@ -94,13 +120,10 @@ const numerosImagen: Record<number, string> = {
   5: "/juegos/conteo/cinco.webp",
 };
 
-const mezclar = <T,>(array: T[]) => {
-  return [...array].sort(() => Math.random() - 0.5);
-};
+const mezclar = <T,>(array: T[]) => [...array].sort(() => Math.random() - 0.5);
 
-const elegirAleatorio = <T,>(array: T[]) => {
-  return array[Math.floor(Math.random() * array.length)];
-};
+const elegirAleatorio = <T,>(array: T[]) =>
+  array[Math.floor(Math.random() * array.length)];
 
 function crearOpciones(correcta: number) {
   const opcionesIncorrectas = mezclar(
@@ -113,16 +136,15 @@ function crearOpciones(correcta: number) {
 function crearRondasPersonalizadas(
   configuracion: ConfiguracionCuentaConmigo
 ): Ronda[] {
-  return mezclar(configuracion.imagenes).map((imagen) => {
-    const cantidad = elegirAleatorio(configuracion.numeros);
+  const imagenes = configuracion.imagenesPorNumero ?? [];
 
-    return {
-      objeto: nombresObjeto[imagen] ?? imagen,
-      cantidad,
-      imagen: `/juegos/conteo/${imagen}.webp`,
-      opciones: crearOpciones(cantidad),
-    };
-  });
+  return mezclar(imagenes).map((item) => ({
+    titulo: item.titulo,
+    objeto: "objetos",
+    cantidad: item.numero,
+    imagen: item.imagen,
+    opciones: crearOpciones(item.numero),
+  }));
 }
 
 function crearRondasBase(): Ronda[] {
@@ -148,9 +170,8 @@ export default function CuentaConmigo({
 }: Props) {
   const rondas: Ronda[] = useMemo(() => {
     if (
-      configuracion &&
-      configuracion.numeros.length > 0 &&
-      configuracion.imagenes.length > 0
+      configuracion?.imagenesPorNumero &&
+      configuracion.imagenesPorNumero.length > 0
     ) {
       return crearRondasPersonalizadas(configuracion);
     }
@@ -188,38 +209,40 @@ export default function CuentaConmigo({
   };
 
   return (
-    <div className="w-full min-h-[560px] rounded-3xl bg-gradient-to-br from-yellow-100 via-purple-100 to-pink-100 p-6 shadow-lg border-4 border-dashed border-purple-300 flex flex-col items-center">
-      <h2 className="text-3xl font-extrabold text-purple-700 mb-1">
+    <div className="flex min-h-[560px] w-full flex-col items-center rounded-3xl border-4 border-dashed border-purple-300 bg-gradient-to-br from-yellow-100 via-purple-100 to-pink-100 p-6 shadow-lg">
+      <h2 className="mb-1 text-3xl font-extrabold text-purple-700">
         Cuenta Conmigo
       </h2>
 
-      <p className="text-base font-bold text-gray-700 mb-4">
+      <p className="mb-4 text-base font-bold text-gray-700">
         Ronda {rondaActual + 1} de {rondas.length}
       </p>
 
-      <div className="bg-white rounded-3xl shadow-xl p-6 w-full max-w-3xl flex flex-col items-center">
-        <h3 className="text-3xl font-extrabold text-orange-500 mb-5 text-center">
-          ¿Cuántos {ronda.objeto} hay en la imagen?
+      <div className="flex w-full max-w-3xl flex-col items-center rounded-3xl bg-white p-6 shadow-xl">
+        <h3 className="mb-5 text-center text-3xl font-extrabold text-orange-500">
+          {ronda.titulo || `¿Cuántos ${ronda.objeto} hay en la imagen?`}
         </h3>
 
-        <div className="w-full max-w-md min-h-[320px] rounded-2xl mb-6 bg-yellow-50 border-4 border-dashed border-yellow-300 p-5 grid grid-cols-3 gap-4 place-items-center">
-          {Array.from({ length: ronda.cantidad }).map((_, index) => (
-            <img
-              key={`${ronda.imagen}-${index}`}
-              src={ronda.imagen}
-              alt={ronda.objeto}
-              className="h-24 w-24 object-contain"
-            />
-          ))}
+        <div className="mb-6 flex min-h-[340px] w-full max-w-xl items-center justify-center rounded-2xl border-4 border-dashed border-yellow-300 bg-yellow-50 p-6">
+          <div className="flex flex-wrap items-center justify-center gap-6">
+            {Array.from({ length: ronda.cantidad }).map((_, index) => (
+              <img
+                key={`${ronda.imagen}-${index}`}
+                src={ronda.imagen}
+                alt={ronda.objeto}
+                className="h-32 w-32 object-contain"
+              />
+            ))}
+          </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-5 w-full max-w-xl">
+        <div className="grid w-full max-w-xl grid-cols-3 gap-5">
           {ronda.opciones.map((opcion) => (
             <button
               key={opcion}
               onClick={() => seleccionarRespuesta(opcion)}
               disabled={bloqueado}
-              className="h-28 rounded-3xl bg-gradient-to-br from-blue-200 to-purple-400 shadow-lg hover:scale-105 transition flex items-center justify-center disabled:opacity-70"
+              className="flex h-28 items-center justify-center rounded-3xl bg-gradient-to-br from-blue-200 to-purple-400 shadow-lg transition hover:scale-105 disabled:opacity-70"
             >
               <img
                 src={numerosImagen[opcion]}
@@ -232,7 +255,7 @@ export default function CuentaConmigo({
       </div>
 
       {mensaje && (
-        <div className="mt-5 text-3xl font-extrabold text-purple-700 animate-bounce">
+        <div className="mt-5 animate-bounce text-3xl font-extrabold text-purple-700">
           {mensaje}
         </div>
       )}
