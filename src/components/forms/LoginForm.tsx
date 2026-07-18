@@ -117,9 +117,7 @@ if (!soloUsuario(usuario)) {
       </form>
 
       <div className="mt-8 space-y-4 text-center">
-  <button className="text-purple-600 font-semibold hover:underline">
-    ¿Olvidaste tu contraseña?
-  </button>
+  
 
   <div className="flex items-center gap-3">
     <div className="h-px flex-1 bg-slate-200" />
