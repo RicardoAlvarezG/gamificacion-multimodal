@@ -3,6 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import {
+  limpiarLetrasNumeros,
+  normalizarEspacios,
+  soloLetrasNumeros,
+} from "@/lib/validacionesCampos";
 
 export default function CrearAulaDocentePage() {
   const router = useRouter();
@@ -15,8 +20,15 @@ export default function CrearAulaDocentePage() {
   const crearAula = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!nombre.trim()) {
+    const nombreNormalizado = normalizarEspacios(nombre);
+
+    if (!nombreNormalizado) {
       alert("Ingresa el nombre del aula");
+      return;
+    }
+
+    if (!soloLetrasNumeros(nombreNormalizado)) {
+      alert("El nombre del aula solo debe contener letras y números");
       return;
     }
 
@@ -66,7 +78,7 @@ export default function CrearAulaDocentePage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          nombre,
+          nombre: nombreNormalizado,
           turno,
           institucionId: null,
           docenteId: null,
@@ -129,7 +141,10 @@ export default function CrearAulaDocentePage() {
               <input
                 type="text"
                 value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
+                onChange={(e) =>
+                  setNombre(limpiarLetrasNumeros(e.target.value))
+                }
+                onBlur={() => setNombre(normalizarEspacios(nombre))}
                 placeholder="Ej: Aula Conejitos"
                 className="w-full rounded-2xl border border-purple-200 bg-white px-4 py-3 outline-none focus:border-purple-500"
               />

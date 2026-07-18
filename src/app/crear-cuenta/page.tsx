@@ -9,12 +9,163 @@ import {
   ShieldCheck,
   KeyRound,
 } from "lucide-react";
+import {
+  limpiarLetrasNumeros,
+  limpiarUsuario,
+  normalizarEspacios,
+  soloLetrasNumeros,
+  soloUsuario,
+} from "@/lib/validacionesCampos";
 
 export default function CrearCuentaPage() {
   const [mostrarPassword, setMostrarPassword] = useState(false);
   const [mostrarConfirmar, setMostrarConfirmar] = useState(false);
   const [rolSeleccionado, setRolSeleccionado] = useState("");
+
   const [formData, setFormData] = useState({
+    nombre: "",
+    correo: "",
+    institucion: "",
+    usuario: "",
+    password: "",
+    confirmarPassword: "",
+    codigoInstitucional: "",
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
+    let valorLimpio = value;
+
+    if (name === "nombre" || name === "institucion") {
+      valorLimpio = limpiarLetrasNumeros(value);
+    }
+
+    if (name === "usuario") {
+      valorLimpio = limpiarUsuario(value);
+    }
+
+    setFormData((datosActuales) => ({
+      ...datosActuales,
+      [name]: valorLimpio,
+    }));
+  };
+
+  const normalizarCampo = (campo: "nombre" | "institucion") => {
+    setFormData((datosActuales) => ({
+      ...datosActuales,
+      [campo]: normalizarEspacios(datosActuales[campo]),
+    }));
+  };
+
+  const validarPassword = (password: string) => {
+    return {
+      longitud: password.length >= 8 && password.length <= 15,
+      mayuscula: /[A-Z]/.test(password),
+      minuscula: /[a-z]/.test(password),
+      numero: /\d/.test(password),
+      simbolo: /[!@#$%^&*(),.?":{}|<>_\-+=/\\[\];'`~]/.test(password),
+    };
+  };
+
+  const reglasPassword = validarPassword(formData.password);
+
+  const passwordValida =
+    reglasPassword.longitud &&
+    reglasPassword.mayuscula &&
+    reglasPassword.minuscula &&
+    reglasPassword.numero &&
+    reglasPassword.simbolo;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const nombreNormalizado = normalizarEspacios(formData.nombre);
+    const institucionNormalizada = normalizarEspacios(formData.institucion);
+    const usuarioNormalizado = formData.usuario.trim();
+
+    if (!nombreNormalizado) {
+      alert("Ingresa los nombres y apellidos");
+      return;
+    }
+
+    if (!soloLetrasNumeros(nombreNormalizado)) {
+      alert(
+        "Los nombres y apellidos solo deben contener letras y números"
+      );
+      return;
+    }
+
+    if (
+      rolSeleccionado === "administrador" &&
+      !institucionNormalizada
+    ) {
+      alert("Ingresa el nombre de la institución");
+      return;
+    }
+
+    if (
+      institucionNormalizada &&
+      !soloLetrasNumeros(institucionNormalizada)
+    ) {
+      alert("La institución solo debe contener letras y números");
+      return;
+    }
+
+    if (!usuarioNormalizado) {
+      alert("Ingresa el ID de usuario");
+      return;
+    }
+
+    if (!soloUsuario(usuarioNormalizado)) {
+      alert("El ID de usuario solo debe contener letras y números");
+      return;
+    }
+
+    if (!rolSeleccionado) {
+      alert("Selecciona un rol");
+      return;
+    }
+
+    if (!passwordValida) {
+      alert("La contraseña no cumple con los requisitos de seguridad.");
+      return;
+    }
+
+    if (formData.password !== formData.confirmarPassword) {
+      alert("Las contraseñas no coinciden");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/registro", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...formData,
+          nombre: nombreNormalizado,
+          institucion: institucionNormalizada,
+          usuario: usuarioNormalizado,
+          codigoInstitucional: formData.codigoInstitucional.trim(),
+          rol:
+            rolSeleccionado === "administrador"
+              ? "ADMIN"
+              : "DOCENTE",
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        alert(data.error || "Error al registrar");
+        return;
+      }
+
+      alert("Cuenta creada correctamente");
+
+      setFormData({
         nombre: "",
         correo: "",
         institucion: "",
@@ -24,79 +175,11 @@ export default function CrearCuentaPage() {
         codigoInstitucional: "",
       });
 
-      const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({
-          ...formData,
-          [e.target.name]: e.target.value,
-        });
-      };
-      const validarPassword = (password: string) => {
-        return {
-          longitud: password.length >= 8 && password.length <= 15,
-          mayuscula: /[A-Z]/.test(password),
-          minuscula: /[a-z]/.test(password),
-          numero: /\d/.test(password),
-          simbolo: /[!@#$%^&*(),.?":{}|<>_\-+=/\\[\];'`~]/.test(password),
-        };
-      };
-
-      const reglasPassword = validarPassword(formData.password);
-
-      const passwordValida =
-        reglasPassword.longitud &&
-        reglasPassword.mayuscula &&
-        reglasPassword.minuscula &&
-        reglasPassword.numero &&
-        reglasPassword.simbolo;
-        const handleSubmit = async (e: React.FormEvent) => {
-          e.preventDefault();
-          if (!passwordValida) {
-              alert("La contraseña no cumple con los requisitos de seguridad.");
-              return;
-            }
-
-          if (formData.password !== formData.confirmarPassword) {
-            alert("Las contraseñas no coinciden");
-            return;
-          }
-
-          try {
-            const res = await fetch("/api/registro", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-              ...formData,
-              institucion: formData.institucion.trim(),
-              rol: rolSeleccionado === "administrador" ? "ADMIN" : "DOCENTE",
-            }),
-            });
-
-            const data = await res.json();
-
-            if (!res.ok) {
-              alert(data.error || "Error al registrar");
-              return;
-            }
-
-            alert("Cuenta creada correctamente");
-
-            setFormData({
-              nombre: "",
-              correo: "",
-              institucion: "",
-              usuario: "",
-              password: "",
-              confirmarPassword: "",
-              codigoInstitucional: "",
-            });
-
-          } catch (error) {
-            alert("Error de conexión con el servidor");
-          }
-        };
-
+      setRolSeleccionado("");
+    } catch {
+      alert("Error de conexión con el servidor");
+    }
+  };
 
   const inputClass =
     "w-full mt-1 px-5 py-3 bg-white border-2 border-blue-200 rounded-2xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-blue-400 transition";
@@ -104,52 +187,55 @@ export default function CrearCuentaPage() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-400 via-blue-300 to-yellow-200 px-4 py-8">
       <div className="w-full max-w-lg bg-white rounded-3xl shadow-2xl p-8 border-4 border-white">
-
         <div className="text-center mb-6">
           <div className="text-5xl mb-2">🎮</div>
+
           <h1 className="text-3xl font-bold text-blue-700">
             Crear Cuenta
           </h1>
+
           <p className="text-gray-600 mt-2">
             Únete a la aventura educativa
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-
           <div>
             <label className="block text-sm font-semibold text-blue-700">
               Nombres y apellidos
             </label>
+
             <input
-                  type="text"
-                  name="nombre"
-                  placeholder="Nombre completo"
-                  value={formData.nombre}
-                  onChange={handleChange}
-                  className={inputClass}
-                />
+              type="text"
+              name="nombre"
+              placeholder="Nombre completo"
+              value={formData.nombre}
+              onChange={handleChange}
+              onBlur={() => normalizarCampo("nombre")}
+              className={inputClass}
+            />
           </div>
 
           <div>
             <label className="block text-sm font-semibold text-blue-700">
               Correo electrónico
             </label>
+
             <input
-                type="email"
-                name="correo"
-                placeholder="Correo electrónico"
-                value={formData.correo}
-                onChange={handleChange}
-                className={inputClass}
-              />
+              type="email"
+              name="correo"
+              placeholder="Correo electrónico"
+              value={formData.correo}
+              onChange={handleChange}
+              className={inputClass}
+            />
           </div>
 
-        <div>
+          <div>
             <label className="block text-sm font-semibold text-blue-700">
-            {rolSeleccionado === "administrador"
-            ? "Institución *"
-            : "Institución (opcional)"}
+              {rolSeleccionado === "administrador"
+                ? "Institución *"
+                : "Institución (opcional)"}
             </label>
 
             <input
@@ -162,22 +248,24 @@ export default function CrearCuentaPage() {
               }
               value={formData.institucion}
               onChange={handleChange}
+              onBlur={() => normalizarCampo("institucion")}
               className={inputClass}
             />
-        </div>
+          </div>
 
           <div>
             <label className="block text-sm font-semibold text-blue-700">
               ID de usuario
             </label>
+
             <input
-                type="text"
-                name="usuario"
-                placeholder="ID de usuario"
-                value={formData.usuario}
-                onChange={handleChange}
-                className={inputClass}
-              />
+              type="text"
+              name="usuario"
+              placeholder="ID de usuario"
+              value={formData.usuario}
+              onChange={handleChange}
+              className={inputClass}
+            />
           </div>
 
           <div>
@@ -195,7 +283,11 @@ export default function CrearCuentaPage() {
                     : "bg-blue-50 border-blue-200 text-blue-700"
                 }`}
               >
-                <GraduationCap size={36} className="mx-auto mb-2" />
+                <GraduationCap
+                  size={36}
+                  className="mx-auto mb-2"
+                />
+
                 <p className="font-bold">Docente</p>
               </button>
 
@@ -208,7 +300,11 @@ export default function CrearCuentaPage() {
                     : "bg-yellow-50 border-yellow-200 text-yellow-700"
                 }`}
               >
-                <ShieldCheck size={36} className="mx-auto mb-2" />
+                <ShieldCheck
+                  size={36}
+                  className="mx-auto mb-2"
+                />
+
                 <p className="font-bold">Administrador</p>
               </button>
             </div>
@@ -237,8 +333,8 @@ export default function CrearCuentaPage() {
               </div>
 
               <p className="text-xs text-gray-600 mt-2">
-                Si tienes un código institucional, quedarás vinculado al panel
-                del administrador y pendiente de aprobación.
+                Si tienes un código institucional, quedarás vinculado al
+                panel del administrador y pendiente de aprobación.
               </p>
             </div>
           )}
@@ -246,8 +342,9 @@ export default function CrearCuentaPage() {
           {rolSeleccionado === "administrador" && (
             <div className="bg-yellow-50 border-2 border-yellow-200 rounded-2xl p-4">
               <p className="text-sm text-yellow-700 font-medium">
-                Al crear tu cuenta como administrador, el sistema generará un
-                código único institucional para registrar docentes.
+                Al crear tu cuenta como administrador, el sistema
+                generará un código único institucional para registrar
+                docentes.
               </p>
             </div>
           )}
@@ -256,8 +353,9 @@ export default function CrearCuentaPage() {
             <label className="block text-sm font-semibold text-blue-700">
               Contraseña
             </label>
+
             <div className="relative mt-1">
-             <input
+              <input
                 type={mostrarPassword ? "text" : "password"}
                 name="password"
                 placeholder="Tu contraseña"
@@ -267,61 +365,106 @@ export default function CrearCuentaPage() {
                   formData.password.length === 0
                     ? "border-blue-200 focus:ring-2 focus:ring-yellow-400 focus:border-blue-400"
                     : passwordValida
-                    ? "border-green-500 focus:ring-2 focus:ring-green-300"
-                    : "border-red-500 focus:ring-2 focus:ring-red-300"
+                      ? "border-green-500 focus:ring-2 focus:ring-green-300"
+                      : "border-red-500 focus:ring-2 focus:ring-red-300"
                 }`}
               />
+
               <button
                 type="button"
                 onClick={() => setMostrarPassword(!mostrarPassword)}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"
               >
-                {mostrarPassword ? <EyeOff size={22} /> : <Eye size={22} />}
+                {mostrarPassword ? (
+                  <EyeOff size={22} />
+                ) : (
+                  <Eye size={22} />
+                )}
               </button>
             </div>
           </div>
 
-            <div className="mt-3 space-y-1 text-sm">
-              <p className={reglasPassword.longitud ? "text-green-600" : "text-red-500"}>
-                {reglasPassword.longitud ? "✅" : "❌"} Entre 8 y 15 caracteres
-              </p>
+          <div className="mt-3 space-y-1 text-sm">
+            <p
+              className={
+                reglasPassword.longitud
+                  ? "text-green-600"
+                  : "text-red-500"
+              }
+            >
+              {reglasPassword.longitud ? "✅" : "❌"} Entre 8 y 15
+              caracteres
+            </p>
 
-              <p className={reglasPassword.mayuscula ? "text-green-600" : "text-red-500"}>
-                {reglasPassword.mayuscula ? "✅" : "❌"} Al menos una letra mayúscula
-              </p>
+            <p
+              className={
+                reglasPassword.mayuscula
+                  ? "text-green-600"
+                  : "text-red-500"
+              }
+            >
+              {reglasPassword.mayuscula ? "✅" : "❌"} Al menos una
+              letra mayúscula
+            </p>
 
-              <p className={reglasPassword.minuscula ? "text-green-600" : "text-red-500"}>
-                {reglasPassword.minuscula ? "✅" : "❌"} Al menos una letra minúscula
-              </p>
+            <p
+              className={
+                reglasPassword.minuscula
+                  ? "text-green-600"
+                  : "text-red-500"
+              }
+            >
+              {reglasPassword.minuscula ? "✅" : "❌"} Al menos una
+              letra minúscula
+            </p>
 
-              <p className={reglasPassword.numero ? "text-green-600" : "text-red-500"}>
-                {reglasPassword.numero ? "✅" : "❌"} Al menos un número
-              </p>
+            <p
+              className={
+                reglasPassword.numero
+                  ? "text-green-600"
+                  : "text-red-500"
+              }
+            >
+              {reglasPassword.numero ? "✅" : "❌"} Al menos un número
+            </p>
 
-              <p className={reglasPassword.simbolo ? "text-green-600" : "text-red-500"}>
-                {reglasPassword.simbolo ? "✅" : "❌"} Al menos un símbolo (@, #, $, %, etc.)
-              </p>
-            </div>
+            <p
+              className={
+                reglasPassword.simbolo
+                  ? "text-green-600"
+                  : "text-red-500"
+              }
+            >
+              {reglasPassword.simbolo ? "✅" : "❌"} Al menos un
+              símbolo (@, #, $, %, etc.)
+            </p>
+          </div>
 
           <div>
             <label className="block text-sm font-semibold text-blue-700">
               Confirmar contraseña
             </label>
+
             <div className="relative mt-1">
               <input
-                  type={mostrarConfirmar ? "text" : "password"}
-                  name="confirmarPassword"
-                  placeholder="Confirmar contraseña"
-                  value={formData.confirmarPassword}
-                  onChange={handleChange}
-                  className={inputClass}
-                />
+                type={mostrarConfirmar ? "text" : "password"}
+                name="confirmarPassword"
+                placeholder="Confirmar contraseña"
+                value={formData.confirmarPassword}
+                onChange={handleChange}
+                className={inputClass}
+              />
+
               <button
                 type="button"
                 onClick={() => setMostrarConfirmar(!mostrarConfirmar)}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"
               >
-                {mostrarConfirmar ? <EyeOff size={22} /> : <Eye size={22} />}
+                {mostrarConfirmar ? (
+                  <EyeOff size={22} />
+                ) : (
+                  <Eye size={22} />
+                )}
               </button>
             </div>
           </div>
@@ -343,7 +486,6 @@ export default function CrearCuentaPage() {
             Iniciar sesión
           </Link>
         </p>
-
       </div>
     </main>
   );

@@ -1,6 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  limpiarLetras,
+  normalizarEspacios,
+  soloLetras,
+} from "@/lib/validacionesCampos";
 
 type Estudiante = {
   id: number;
@@ -40,8 +45,21 @@ export default function EditEstudianteModal({
 
     if (!estudiante) return;
 
-    if (!nombres.trim() || !apellidos.trim()) {
+    const nombresNormalizados = normalizarEspacios(nombres);
+    const apellidosNormalizados = normalizarEspacios(apellidos);
+
+    if (!nombresNormalizados || !apellidosNormalizados) {
       alert("Ingresa nombres y apellidos");
+      return;
+    }
+
+    if (!soloLetras(nombresNormalizados)) {
+      alert("Los nombres solo deben contener letras");
+      return;
+    }
+
+    if (!soloLetras(apellidosNormalizados)) {
+      alert("Los apellidos solo deben contener letras");
       return;
     }
 
@@ -87,8 +105,8 @@ export default function EditEstudianteModal({
         },
         body: JSON.stringify({
           estudianteId: estudiante.id,
-          nombres,
-          apellidos,
+          nombres: nombresNormalizados,
+          apellidos: apellidosNormalizados,
           aulaId,
         }),
       });
@@ -102,7 +120,10 @@ export default function EditEstudianteModal({
 
       alert("Estudiante actualizado correctamente");
 
+      setNombres(nombresNormalizados);
+      setApellidos(apellidosNormalizados);
       setPassword("");
+
       onUpdated();
       onClose();
     } catch (error) {
@@ -136,10 +157,12 @@ export default function EditEstudianteModal({
             <label className="mb-2 block font-bold text-slate-700">
               Nombres
             </label>
+
             <input
               type="text"
               value={nombres}
-              onChange={(e) => setNombres(e.target.value)}
+              onChange={(e) => setNombres(limpiarLetras(e.target.value))}
+              onBlur={() => setNombres(normalizarEspacios(nombres))}
               className="w-full rounded-2xl border border-purple-200 bg-white px-4 py-3 outline-none focus:border-purple-500"
             />
           </div>
@@ -148,10 +171,12 @@ export default function EditEstudianteModal({
             <label className="mb-2 block font-bold text-slate-700">
               Apellidos
             </label>
+
             <input
               type="text"
               value={apellidos}
-              onChange={(e) => setApellidos(e.target.value)}
+              onChange={(e) => setApellidos(limpiarLetras(e.target.value))}
+              onBlur={() => setApellidos(normalizarEspacios(apellidos))}
               className="w-full rounded-2xl border border-purple-200 bg-white px-4 py-3 outline-none focus:border-purple-500"
             />
           </div>
@@ -160,6 +185,7 @@ export default function EditEstudianteModal({
             <label className="mb-2 block font-bold text-slate-700">
               Confirma tu contraseña
             </label>
+
             <input
               type="password"
               value={password}

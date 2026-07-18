@@ -1,6 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  limpiarLetrasNumeros,
+  normalizarEspacios,
+  soloLetrasNumeros,
+} from "@/lib/validacionesCampos";
 
 interface CreateAulaModalProps {
   isOpen: boolean;
@@ -67,8 +72,15 @@ export default function CreateAulaModal({
   const crearAula = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!nombre.trim()) {
+    const nombreNormalizado = normalizarEspacios(nombre);
+
+    if (!nombreNormalizado) {
       alert("Ingresa el nombre del aula");
+      return;
+    }
+
+    if (!soloLetrasNumeros(nombreNormalizado)) {
+      alert("El nombre del aula solo debe contener letras y números");
       return;
     }
 
@@ -84,25 +96,25 @@ export default function CreateAulaModal({
       return;
     }
 
-      const admin = JSON.parse(usuarioGuardado);
+    const admin = JSON.parse(usuarioGuardado);
 
-      const validacion = await fetch("/api/validar-password", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          usuarioId: admin.id,
-          password,
-        }),
-      });
+    const validacion = await fetch("/api/validar-password", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        usuarioId: admin.id,
+        password,
+      }),
+    });
 
-      const resultado = await validacion.json();
+    const resultado = await validacion.json();
 
-      if (!validacion.ok) {
-        alert(resultado.error || "Contraseña incorrecta");
-        return;
-      }
+    if (!validacion.ok) {
+      alert(resultado.error || "Contraseña incorrecta");
+      return;
+    }
 
     try {
       setLoading(true);
@@ -112,8 +124,8 @@ export default function CreateAulaModal({
         headers: {
           "Content-Type": "application/json",
         },
-              body: JSON.stringify({
-          nombre,
+        body: JSON.stringify({
+          nombre: nombreNormalizado,
           turno,
           grado,
           institucionId: admin.institucionId || null,
@@ -133,6 +145,7 @@ export default function CreateAulaModal({
 
       setNombre("");
       setTurno("Mañana");
+      setGrado("3");
       setDocenteId("");
       setPassword("");
 
@@ -155,6 +168,7 @@ export default function CreateAulaModal({
             <h2 className="text-3xl font-extrabold text-purple-700">
               Crear aula
             </h2>
+
             <p className="mt-1 text-sm font-semibold text-slate-500">
               Registra una nueva aula para tu institución.
             </p>
@@ -173,10 +187,14 @@ export default function CreateAulaModal({
             <label className="mb-2 block font-bold text-slate-700">
               Nombre del aula
             </label>
+
             <input
               type="text"
               value={nombre}
-              onChange={(e) => setNombre(e.target.value)}
+              onChange={(e) =>
+                setNombre(limpiarLetrasNumeros(e.target.value))
+              }
+              onBlur={() => setNombre(normalizarEspacios(nombre))}
               placeholder="Ej: Inicial 4 años"
               className="w-full rounded-2xl border border-purple-200 px-4 py-3 outline-none focus:border-purple-500"
             />
@@ -186,6 +204,7 @@ export default function CreateAulaModal({
             <label className="mb-2 block font-bold text-slate-700">
               Docente asignado
             </label>
+
             <select
               value={docenteId}
               onChange={(e) => setDocenteId(e.target.value)}
@@ -205,6 +224,7 @@ export default function CreateAulaModal({
             <label className="mb-2 block font-bold text-slate-700">
               Turno
             </label>
+
             <select
               value={turno}
               onChange={(e) => setTurno(e.target.value)}
@@ -235,6 +255,7 @@ export default function CreateAulaModal({
             <label className="mb-2 block font-bold text-slate-700">
               Confirma tu contraseña
             </label>
+
             <input
               type="password"
               value={password}
@@ -265,4 +286,4 @@ export default function CreateAulaModal({
       </div>
     </div>
   );
-} 
+}

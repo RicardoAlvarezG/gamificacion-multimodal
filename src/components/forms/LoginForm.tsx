@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { limpiarUsuario, soloUsuario } from "@/lib/validacionesCampos";
 
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -10,6 +11,15 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const handleLogin = async (e: React.FormEvent) => {
   e.preventDefault();
+  if (!usuario.trim()) {
+  alert("Ingresa tu ID de usuario");
+  return;
+}
+
+if (!soloUsuario(usuario)) {
+  alert("El ID de usuario solo debe contener letras y números");
+  return;
+}
   setLoading(true);
 
   try {
@@ -67,7 +77,7 @@ export default function LoginForm() {
             type="text"
             placeholder="Ejemplo: DOC001"
             value={usuario}
-            onChange={(e) => setUsuario(e.target.value)}
+            onChange={(e) => setUsuario(limpiarUsuario(e.target.value))}
             className="w-full rounded-2xl border border-slate-200 px-5 py-3 outline-none transition focus:border-purple-400 focus:ring-4 focus:ring-purple-100"
           />
         </div>

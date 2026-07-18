@@ -1,6 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import {
+  limpiarLetras,
+  normalizarEspacios,
+  soloLetras,
+} from "@/lib/validacionesCampos";
 
 type Props = {
   isOpen: boolean;
@@ -23,8 +28,21 @@ export default function CreateEstudianteModal({
   const guardarEstudiante = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!nombres.trim() || !apellidos.trim()) {
+    const nombresNormalizados = normalizarEspacios(nombres);
+    const apellidosNormalizados = normalizarEspacios(apellidos);
+
+    if (!nombresNormalizados || !apellidosNormalizados) {
       alert("Ingresa nombres y apellidos");
+      return;
+    }
+
+    if (!soloLetras(nombresNormalizados)) {
+      alert("Los nombres solo deben contener letras");
+      return;
+    }
+
+    if (!soloLetras(apellidosNormalizados)) {
+      alert("Los apellidos solo deben contener letras");
       return;
     }
 
@@ -69,8 +87,8 @@ export default function CreateEstudianteModal({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          nombres,
-          apellidos,
+          nombres: nombresNormalizados,
+          apellidos: apellidosNormalizados,
           aulaId,
         }),
       });
@@ -121,10 +139,12 @@ export default function CreateEstudianteModal({
             <label className="mb-2 block font-bold text-slate-700">
               Nombres
             </label>
+
             <input
               type="text"
               value={nombres}
-              onChange={(e) => setNombres(e.target.value)}
+              onChange={(e) => setNombres(limpiarLetras(e.target.value))}
+              onBlur={() => setNombres(normalizarEspacios(nombres))}
               placeholder="Ej: Mateo"
               className="w-full rounded-2xl border border-purple-200 bg-white px-4 py-3 outline-none focus:border-purple-500"
             />
@@ -134,10 +154,12 @@ export default function CreateEstudianteModal({
             <label className="mb-2 block font-bold text-slate-700">
               Apellidos
             </label>
+
             <input
               type="text"
               value={apellidos}
-              onChange={(e) => setApellidos(e.target.value)}
+              onChange={(e) => setApellidos(limpiarLetras(e.target.value))}
+              onBlur={() => setApellidos(normalizarEspacios(apellidos))}
               placeholder="Ej: Ramírez López"
               className="w-full rounded-2xl border border-purple-200 bg-white px-4 py-3 outline-none focus:border-purple-500"
             />
@@ -147,6 +169,7 @@ export default function CreateEstudianteModal({
             <label className="mb-2 block font-bold text-slate-700">
               Confirma tu contraseña
             </label>
+
             <input
               type="password"
               value={password}
