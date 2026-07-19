@@ -14,6 +14,7 @@ export default function CrearAulaDocentePage() {
 
   const [nombre, setNombre] = useState("");
   const [turno, setTurno] = useState("Mañana");
+  const [grado, setGrado] = useState("3");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -29,6 +30,11 @@ export default function CrearAulaDocentePage() {
 
     if (!soloLetrasNumeros(nombreNormalizado)) {
       alert("El nombre del aula solo debe contener letras y números");
+      return;
+    }
+
+    if (!grado) {
+      alert("Selecciona el grado o edad");
       return;
     }
 
@@ -80,6 +86,7 @@ export default function CrearAulaDocentePage() {
         body: JSON.stringify({
           nombre: nombreNormalizado,
           turno,
+          grado,
           institucionId: null,
           docenteId: null,
           creadoPorId: docente.id,
@@ -162,6 +169,22 @@ export default function CrearAulaDocentePage() {
               >
                 <option value="Mañana">Mañana</option>
                 <option value="Tarde">Tarde</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-2 block font-bold text-slate-700">
+                Grado / Edad
+              </label>
+
+              <select
+                value={grado}
+                onChange={(e) => setGrado(e.target.value)}
+                className="w-full rounded-2xl border border-purple-200 bg-white px-4 py-3 outline-none focus:border-purple-500"
+              >
+                <option value="3">Inicial 3 años</option>
+                <option value="4">Inicial 4 años</option>
+                <option value="5">Inicial 5 años</option>
               </select>
             </div>
 

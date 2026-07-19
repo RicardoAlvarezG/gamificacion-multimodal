@@ -7,7 +7,9 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "vitest"
+    "test": "vitest",
+    "selenium:test": "node e2e/selenium/01-abrir-aplicacion.cjs",
+    "selenium:flujo": "node e2e/selenium/flujo-completo-docente.cjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
@@ -31,6 +33,7 @@
     "@vitest/ui": "^4.1.10",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
+    "selenium-webdriver": "^4.46.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.10"
